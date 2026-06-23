@@ -160,6 +160,26 @@ Odkrycia:
   nisko - auto-grade to dolne oszacowanie; przy publikacji potrzebny human eval (kolejny dowód
   meta-tezy "metryka != ocena").
 
+## qwen3.6 vs qwen3-coder (na życzenie: czy nowsza generacja pomaga?)
+
+| Oś | qwen3.6:35b-a3b-fast | qwen3-coder:30b-fast |
+|---|---|---|
+| output tok/s | 16.9 (thinking) | **61.8** |
+| eval tok/s | 49.5 | 61.8 |
+| reasoning (śr×3) | 3.33 [3,3,4] | 3.67 [3,5,3] |
+| consistency | 1 | 2 |
+| kod /8 | 4/8 (gen 2/5) | **8/8** |
+| energia kWh/1M | 0.74 | **0.20** |
+
+**Wniosek: nowsza generacja/większy rozmiar NIE pomogły - bo to inny TYP modelu.** qwen3.6
+(36B, gen 3.6, OGÓLNY - pod PL-tech pipeline) przegrywa z qwen3-coder (30B, dedykowany KODER)
+na wszystkich osiach benchmarku kodowego:
+- **kod 4/8 vs 8/8** - qwen3.6 nie napisał połowy funkcji; koder to jego domena, nie qwen3.6.
+- **output 16.9 vs 61.8** - qwen3.6 to thinking-model (65% generacji = myślenie), coder czysty.
+- **energia 3.6× droższa** - thinking spowalnia widoczny output.
+Lekcja: "nowszy i większy" nie wygrywa automatycznie - liczy się dopasowanie typu do zadania.
+qwen3.6 błyszczy tam, gdzie go zoptymalizowano (polski/pipeline), nie w benchmarku kodowym EN.
+
 ## Ranking WSZECHSTRONNY (wszystkie 3 zestawy razem)
 
 1. **north-mini-code** - szybki (43.6) + 5/6 + 8/8 + tani. Nowy lider wszechstronny.
