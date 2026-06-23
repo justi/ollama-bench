@@ -55,9 +55,18 @@ def measure_model(model, prompt, num_predict, runs=RUNS):
         # liczy tokeny MYSLENIA. gen_tok_s to wtedy przepustowosc kanalu thinking, nie outputu.
         think_chars = len(last.get("thinking") or "")
         resp_chars = len(last.get("response") or "")
+    med = round(statistics.median(rates), 1) if rates else None
+    # response_tok_s_est: dla modeli thinking eval_count liczy tokeny myslenia, wiec surowy
+    # tok/s zawyza przepustowosc WIDOCZNEGO outputu. Szacujemy output proporcjonalnie do
+    # udzialu znakow response w calym wygenerowanym tekscie (grok #1, codex round2 #1).
+    resp_est = med
+    if med and think_chars > 0 and (resp_chars + think_chars) > 0:
+        resp_est = round(med * resp_chars / (resp_chars + think_chars), 1)
     return {
         "model": model,
-        "gen_tok_s": round(statistics.median(rates), 1) if rates else None,
+        "eval_tok_s": med,               # surowa przepustowosc generacji (z tokenami thinking)
+        "response_tok_s_est": resp_est,  # szacowany WIDOCZNY output (dla thinking < eval_tok_s)
+        "gen_tok_s": med,                # alias wsteczny (= eval_tok_s)
         "gen_tok_s_runs": rates,
         "prompt_tok_s": prompt_tok_s(last) if last else None,
         "total_s": total_seconds(last) if last else None,
@@ -103,13 +112,22 @@ def main():
         print(f"gen {row['gen_tok_s']} tok/s (mediana z {row['gen_tok_s_runs']}) | "
               f"prompt {row['prompt_tok_s']} tok/s | total {row['total_s']} s{warn}{think}")
 
-    print("\n== PODSUMOWANIE (mediana gen tok/s) ==")
-    print(f"{'model':<32} {'gen tok/s':>10} {'przebiegi':>24}")
+    print("\n== PODSUMOWANIE (mediana z 3, izolacja) ==")
+    print(f"{'model':<30}{'output tok/s':>13}{'eval tok/s':>12}  uwaga")
     for r in rows:
         if "error" in r:
-            print(f"{r['model']:<32} {'BLAD':>10}")
+            print(f"{r['model']:<30}{'BLAD':>13}")
+            continue
+        # grok #1/#2 codex round2: brak izolacji = liczba niewiarygodna; thinking = eval > output
+        if not r.get("isolated"):
+            note = "[!] BRAK IZOLACJI - liczba niepewna"
+        elif r.get("is_thinking"):
+            note = "thinking: eval_tok_s zawiera myslenie, output nizszy"
         else:
-            print(f"{r['model']:<32} {str(r['gen_tok_s']):>10} {str(r['gen_tok_s_runs']):>24}")
+            note = ""
+        out = r.get("response_tok_s_est")
+        ev = r.get("eval_tok_s")
+        print(f"{r['model']:<30}{str(out):>13}{str(ev):>12}  {note}")
 
     with open("results_speed.json", "w") as f:
         json.dump(rows, f, ensure_ascii=False, indent=2)

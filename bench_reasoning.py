@@ -13,21 +13,27 @@ import sys
 
 from _common import generate, load_prompts
 
-# (pytanie, klucze akceptujace, klucze ODRZUCAJACE) - czytane z prompts.json
-PUZZLES = [(p["q"], p["keys"], p.get("anti")) for p in load_prompts()["reasoning"]]
+# (pytanie, keys-OR, anti-ODRZUC, all-grupy-AND) - czytane z prompts.json
+PUZZLES = [(p["q"], p.get("keys", []), p.get("anti"), p.get("all")) for p in load_prompts()["reasoning"]]
 
 
-def grade(answer, keys, anti=None):
+def grade(answer, keys, anti=None, all_groups=None):
     # Normalizuj: usun markdown (**bold**, #, `) i sklej whitespace, zeby klucz
     # zlapal odpowiedz typu "**4**\nDziewczyn: **3**". re.DOTALL bo '.' ma przejsc przez newline.
     a = re.sub(r"[*#`]", " ", answer.lower())
     a = re.sub(r"\s+", " ", a)
-    # anti: jesli odpowiedz zawiera wzorzec sprzeczny/blędny, odrzuc MIMO trafienia keys.
-    # Bez tego Monty Hall "zmieniam, ale prawdopodobienstwo rowne" falszywie przechodzi (codex #6).
+    # anti: jesli odpowiedz zawiera wzorzec sprzeczny/blędny, odrzuc (Monty Hall "rowne prawdopodob").
     if anti:
         for k in anti:
             if re.search(k.lower(), a, re.DOTALL):
                 return False
+    # all: KAZDA grupa musi miec >=1 trafienie (AND miedzy grupami). Z1 wymaga 4 chlop ORAZ 3 dziew,
+    # inaczej "4 chlopcow, 100 dziewczynek" przeszloby (grok/codex round2 #4).
+    if all_groups:
+        for group in all_groups:
+            if not any(re.search(k.lower(), a, re.DOTALL) for k in group):
+                return False
+        return True
     for k in keys:
         if re.search(k.lower(), a, re.DOTALL):
             return True
@@ -45,7 +51,7 @@ def main():
         print(f"\n== {m} ==")
         score = 0
         details = []
-        for i, (q, keys, anti) in enumerate(PUZZLES, 1):
+        for i, (q, keys, anti, all_g) in enumerate(PUZZLES, 1):
             try:
                 r = generate(m, q, num_predict=3000)
                 ans = r.get("response") or ""
@@ -53,7 +59,7 @@ def main():
                 print(f"  Z{i}: BLAD {e}")
                 details.append({"q": i, "error": str(e)})
                 continue
-            ok = grade(ans, keys, anti)
+            ok = grade(ans, keys, anti, all_g)
             score += 1 if ok else 0
             print(f"  Z{i}: {'OK ' if ok else 'NIE'}  (dl. odp: {len(ans.split())} slow)")
             details.append({"q": i, "ok": ok, "answer": ans})

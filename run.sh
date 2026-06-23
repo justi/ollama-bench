@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Odpala caly benchmark i zapisuje wyniki do results_*.json.
 # Edytuj liste modeli ponizej pod to, co masz pobrane (ollama list).
-set -u
+# -e: przerwij po pierwszej awarii (nie publikuj czesciowych wynikow jako pelnego przebiegu);
+# -u: blad na niezdefiniowanej zmiennej; pipefail: status z calego pipe (grok/codex #5)
+set -euo pipefail
 cd "$(dirname "$0")"
 
 # Modele bazowe (publiczne) - zmien na swoje warianty, jesli masz np. qwen-fast.
