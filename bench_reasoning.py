@@ -20,7 +20,16 @@ PUZZLES = [(p["q"], p.get("keys", []), p.get("anti"), p.get("all")) for p in loa
 def grade(answer, keys, anti=None, all_groups=None):
     # Normalizuj: usun markdown (**bold**, #, `) i sklej whitespace, zeby klucz
     # zlapal odpowiedz typu "**4**\nDziewczyn: **3**". re.DOTALL bo '.' ma przejsc przez newline.
-    a = re.sub(r"[*#`]", " ", answer.lower())
+    a = answer.lower()
+    # LaTeX: \frac{2}{3} -> 2/3, usun \boxed \text \[ ] i nawiasy klamrowe (r1 pisze matematyke
+    # w LaTeX, klucz "2/3" nie lapal "\frac{2}{3}" - false-negative, audyt reczny r1).
+    a = re.sub(r"\\frac\s*\{(\d+)\}\s*\{(\d+)\}", r"\1/\2", a)
+    a = re.sub(r"\\[a-z]+", " ", a)  # \boxed \text \frac itd.
+    a = re.sub(r"[{}\\\[\]]", " ", a)
+    # Diakrytyka -> ASCII, by klucz "chlop" lapal "chlopcow" pisane z polskimi znakami (ch-l-o-p
+    # z 'l' kreskowanym). Audyt reczny r1: "4 chlopce" z 'l-kreska' nie lapalo klucza "4 chlop".
+    a = a.translate(str.maketrans("ąćęłńóśźż", "acelnoszz"))
+    a = re.sub(r"[*#`]", " ", a)
     a = re.sub(r"\s+", " ", a)
     # anti: jesli odpowiedz zawiera wzorzec sprzeczny/blędny, odrzuc (Monty Hall "rowne prawdopodob").
     if anti:

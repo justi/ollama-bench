@@ -105,28 +105,35 @@ Różnice fast vs default:
 | Model | output tok/s | reasoning /6 | kod /8 | energia kWh/1M |
 |---|---|---|---|---|
 | north-mini-code-1.0 | **43.6** | 5/6 | 8/8 | **0.29** |
-| phi4:14b | 12.0 | 5/6 | 8/8 | 1.04 |
-| deepseek-r1-8k | ~1.5 | 3/6 | 4/8 | 8.33 |
+| phi4:14b | 12.0 | **6/6** | 8/8 | 1.04 |
+| deepseek-r1-8k | ~1.5 | 5/6 | 4/8 | 8.33 |
 
-(north-mini-code: Cohere 30B/3B MoE; phi4: Microsoft 14B; deepseek-r1: 32B reasoning, z
-`num_ctx 8192` bo domyślne 128K = 54 GB RAM = crash/2.4 tok/s na 64 GB)
+(reasoning po RĘCZNEJ weryfikacji + naprawie gradera: auto-grade zaniżał, bo nie rozumiał
+LaTeX `\frac{2}{3}` ani polskich znaków `chłop` vs klucz `chlop`. r1 auto 3/6 -> realnie 5/6;
+phi4 auto 5/6 -> 6/6. north-mini-code: Cohere 30B/3B MoE; phi4: Microsoft 14B; deepseek-r1:
+32B, `num_ctx 8192` bo domyślne 128K = 54 GB RAM = crash na 64 GB)
 
 Odkrycia:
 - **north-mini-code WYPEŁNIA LUKĘ "szybki I dobry":** output 43.6 (2. po qwenie) + reasoning 5/6
   + kod 8/8 + tani (0.29). Lepszy wszechstronny niż gpt-oss, który ma output 15 przez thinking.
-- **phi4 (14B, 9 GB) - najlepszy stosunek jakość/rozmiar:** 5/6 + 8/8 jak duże modele, przy
-  połowie rozmiaru. Wolniejszy (12 tok/s), ale jakościowo dorównuje.
-- **deepseek-r1 - rozczarowanie:** dedykowany reasoning dał 3/6 (gorzej niż phi4!), kod 4/8
-  (generacja 2/5), niepraktycznie wolny (4 tok/s eval, ~1.5 output) i pamięciożerny. Energia
-  8.33 kWh/1M (~40× qwena). Na tym sprzęcie nie nadaje się do praktycznego użytku.
+- **phi4 (14B, 9 GB) - rewelacja:** reasoning **6/6 (najlepszy ze wszystkich)** + kod 8/8, przy
+  połowie rozmiaru dużych modeli. Wolniejszy (12 tok/s), ale jakościowo bezkonkurencyjny w klasie.
+- **deepseek-r1 - dobry reasoning (5/6), ale niepraktyczny:** jako reasoning-model logika trzyma
+  (auto-grade zaniżył do 3/6 przez LaTeX), ALE kod słaby (4/8, generacja 2/5), niepraktycznie
+  wolny (4 tok/s eval, ~1.5 output) i pamięciożerny. Energia 8.33 kWh/1M (~40× qwena). Reasoning
+  go nie ratuje - na tym sprzęcie nie nadaje się do codziennej pracy.
+- **Lekcja o graderze:** Z1 zaniżał WSZYSTKIE modele (każdy pisał "chłopców" z ł). Reasoning
+  fast/default (qwen/gpt-oss/devstral) z wcześniejszych przebiegów też prawdopodobnie o ~1 za
+  nisko - auto-grade to dolne oszacowanie; przy publikacji potrzebny human eval (kolejny dowód
+  meta-tezy "metryka != ocena").
 
 ## Ranking WSZECHSTRONNY (wszystkie 3 zestawy razem)
 
 1. **north-mini-code** - szybki (43.6) + 5/6 + 8/8 + tani. Nowy lider wszechstronny.
 2. **qwen-fast** - najszybszy (61.8) i najtańszy, kod 8/8, ale słabszy reasoning (4/6). Król wydajności.
-3. **phi4** - jakość 5/6 + 8/8 w 14 B, ale wolniejszy (12 tok/s).
+3. **phi4** - NAJLEPSZA jakość (reasoning 6/6 + kod 8/8), i to w 14 B! Ale wolny (12 tok/s). Gdy liczy się jakość, nie przepustowość.
 4. **gpt-oss / devstral** - jakość 5/6 + 8/8, ale efektywnie wolne (output 12-15) i drogie.
-5. **deepseek-r1** - odpada: wolny, słaby kod, drogi.
+5. **deepseek-r1** - dobry reasoning (5/6), ale odpada: słaby kod (4/8), bardzo wolny, pamięciożerny.
 
 ## Metodologia (dlaczego liczbom można ufać)
 
