@@ -46,12 +46,3 @@ devstral **timeout >900 s**. Wartości zawyżone złą kalibracją promptu (popr
 repeat=160 -> ~12k tokenów), ale **relacja się potwierdza**: devstral dramatycznie wolniejszy
 od qwen na dużym kontekście (nie domknął, gdy qwen tak) - teza "sliding window attention
 nie skaluje się na dużym prompcie".
-
-## Uwaga operacyjna (warta wpisu do artykułu)
-
-1. **Dwie instalacje Ollamy naraz.** Na tym Macu brew formula (niekompletna - bez `llama-server`)
-   trzymała port 11434 i blokowała inference, obok kompletnej Ollama.app. Fix: zatrzymać brew
-   serwer (`brew services stop ollama`) i używać Ollama.app. Instaluj Ollamę z jednego źródła.
-2. **Uszkodzony blob GGUF.** gpt-oss dawał HTTP 500 (`failed to read tensor info`) - to nie
-   parametry, tylko zepsuty plik modelu. Naprawa: `ollama pull gpt-oss:20b` (świeży blob).
-   Po re-pullu model wstał i dał 54 tok/s + 6/6 na reasoning.
