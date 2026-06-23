@@ -47,9 +47,12 @@ PUZZLES = [
 
 
 def grade(answer, keys):
-    a = answer.lower()
+    # Normalizuj: usun markdown (**bold**, #, `) i sklej whitespace, zeby klucz
+    # zlapal odpowiedz typu "**4**\nDziewczyn: **3**". re.DOTALL bo '.' ma przejsc przez newline.
+    a = re.sub(r"[*#`]", " ", answer.lower())
+    a = re.sub(r"\s+", " ", a)
     for k in keys:
-        if re.search(k.lower(), a):
+        if re.search(k.lower(), a, re.DOTALL):
             return True
     return False
 
