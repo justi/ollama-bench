@@ -25,7 +25,9 @@ Adres serwera można zmienić zmienną `OLLAMA_HOST` (domyślnie `http://localho
 | `bench_speed.py` | "qwen ~52 tok/s, gemma ~6 tok/s, devstral ~12 tok/s" | tok/s generacji (`eval_count`/`eval_duration`) |
 | `bench_speed.py --big` | "devstral ~40 s vs qwen ~17 s na dużym prompcie" | czas na prompcie ~12 tys. tokenów (prompt eval + gen) |
 | `bench_numpredict.py` | "domyślny limit ~293 słów -> 3000 ~747 słów, ~45 s -> ~85 s" | dwa przebiegi gpt-oss z różnym `num_predict` |
-| `bench_reasoning.py` | "gpt-oss 2/6, qwen 6/6 na zagadkach" | 6 zagadek logicznych, auto-grade po kluczu |
+| `bench_reasoning.py` | "gpt-oss 2/6, qwen 6/6 na zagadkach" | jakość reasoningu: 6 zagadek logicznych, auto-grade |
+| `bench_coding.py` | jakość kodowa modeli kodowych | generacja funkcji (auto-test przez uruchomienie) + bug finding |
+| `bench_cost.py` | koszt energii lokalnego inferencji | energia kWh/1M (z tok/s i poboru mocy); zł opcjonalnie |
 
 ## Uruchomienie
 
@@ -38,7 +40,12 @@ python3 bench_speed.py qwen3-coder:30b gpt-oss:20b
 python3 bench_speed.py --big qwen3-coder:30b devstral:24b
 python3 bench_numpredict.py gpt-oss:20b
 python3 bench_reasoning.py qwen3-coder:30b gpt-oss:20b
+python3 bench_coding.py qwen3-coder:30b deepseek-coder:33b   # jakość kodowa (uruchamia wygenerowany kod!)
+python3 bench_cost.py "qwen3-coder:30b=54.8" "deepseek-coder:33b=10.4"   # energia kWh/1M
 ```
+
+`bench_coding.py` wykonuje (exec) kod wygenerowany przez model na lokalnych testach -
+uruchamiaj tylko na zaufanych modelach lokalnych.
 
 ## Uwaga o wariantach "fast"
 

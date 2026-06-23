@@ -39,5 +39,50 @@
       "q": "Slowo HELLO odwroc, wez trzecia litere wyniku. Jaka to litera? Podaj sama litere.",
       "keys": ["\\bL\\b"]
     }
-  ]
+  ],
+
+  "coding": {
+    "_opis": "Jakosc kodowa: generacja funkcji (auto-test przez uruchomienie) + bug finding.",
+    "generate": [
+      {
+        "func": "is_prime",
+        "prompt": "Napisz funkcje Python o nazwie is_prime(n) zwracajaca True jesli n jest liczba pierwsza, inaczej False. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[2], true], [[3], true], [[4], false], [[1], false], [[0], false], [[17], true], [[15], false]]
+      },
+      {
+        "func": "fibonacci",
+        "prompt": "Napisz funkcje Python fibonacci(n) zwracajaca n-ty wyraz ciagu Fibonacciego, gdzie fibonacci(0)=0 i fibonacci(1)=1. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[0], 0], [[1], 1], [[2], 1], [[10], 55], [[15], 610]]
+      },
+      {
+        "func": "merge_intervals",
+        "prompt": "Napisz funkcje Python merge_intervals(intervals), ktora scala nachodzace na siebie przedzialy. Wejscie to lista par [start, end]. Zwroc liste scalonych przedzialow posortowanych rosnaco po start. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[[1,3],[2,6],[8,10],[15,18]]], [[1,6],[8,10],[15,18]]], [[[[1,4],[4,5]]], [[1,5]]]]
+      },
+      {
+        "func": "longest_unique",
+        "prompt": "Napisz funkcje Python longest_unique(s) zwracajaca dlugosc (int) najdluzszego podlancucha bez powtarzajacych sie znakow. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["abcabcbb"], 3], [["bbbbb"], 1], [["pwwkew"], 3], [[""], 0]]
+      },
+      {
+        "func": "count_vowels",
+        "prompt": "Napisz funkcje Python count_vowels(s) liczaca samogloski (a, e, i, o, u) w lancuchu, ignorujac wielkosc liter. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["hello"], 2], [["HELLO"], 2], [["xyz"], 0], [["AEIOU"], 5]]
+      }
+    ],
+    "bugfind": [
+      {
+        "prompt": "Znajdz blad w tym kodzie Python:\n\nfor i in range(len(arr)):\n    print(arr[i+1])\n\nOpisz krotko, na czym polega blad.",
+        "keys": ["off.?by.?one", "i\\s*\\+\\s*1", "poza zakres", "index ?error", "out of range", "ostatni", "przekrocz", "wyjdzie poza"]
+      },
+      {
+        "prompt": "Znajdz blad w tym kodzie Python:\n\nfor x in lst:\n    if x < 0:\n        lst.remove(x)\n\nOpisz krotko, na czym polega blad.",
+        "keys": ["modyfik.{0,15}iteracj", "podczas iteracj", "mutacj", "remove.{0,15}iteracj", "zmienia.{0,15}petl", "pomija", "w trakcie iteracj"]
+      },
+      {
+        "prompt": "Znajdz blad lub co poprawic w tym kodzie Python:\n\ndef f(x):\n    if x == None:\n        return 0\n    return x * 2\n\nOpisz krotko.",
+        "keys": ["is none", "== ?none", "porownan.{0,15}none", "powinno.{0,15}is", "tozsamosc", "is not none"]
+      }
+    ]
+  }
 }

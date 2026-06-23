@@ -18,8 +18,11 @@ python3 bench_speed.py --big "${SPEED_MODELS[@]}"
 echo "############ 3/4 num_predict (dlugosc vs limit) ############"
 python3 bench_numpredict.py "${THINK_MODEL}"
 
-echo "############ 4/4 zagadki logiczne ############"
+echo "############ 4/5 zagadki logiczne (jakosc reasoning) ############"
 python3 bench_reasoning.py "${REASON_MODELS[@]}"
 
+echo "############ 5/5 jakosc kodowa (generacja + bug finding) ############"
+python3 bench_coding.py "${REASON_MODELS[@]}"
+
 echo
-echo "Gotowe. Wyniki: results_speed.json, results_numpredict.json, results_reasoning.json"
+echo "Gotowe. Wyniki: results_speed.json, results_numpredict.json, results_reasoning.json, results_coding.json"
