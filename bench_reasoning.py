@@ -50,38 +50,58 @@ def grade(answer, keys, anti=None, all_groups=None):
 
 
 def main():
-    models = sys.argv[1:]
+    args = sys.argv[1:]
+    # --runs N: N pelnych przebiegow, raportuj SREDNIA + zakres. Tlumi szum temp 0.7 (+-1)
+    # i ujawnia wariancje (model stabilny vs chaotyczny). Domyslnie 1.
+    runs = 1
+    if "--runs" in args:
+        idx = args.index("--runs")
+        try:
+            runs = int(args[idx + 1])
+        except (IndexError, ValueError):
+            print("--runs wymaga liczby")
+            sys.exit(1)
+        args = args[:idx] + args[idx + 2:]
+    models = args
     if not models:
-        print("Uzycie: python3 bench_reasoning.py MODEL [MODEL ...]")
+        print("Uzycie: python3 bench_reasoning.py [--runs N] MODEL [MODEL ...]")
         sys.exit(1)
+    maxs = len(PUZZLES)
 
     all_results = {}
     for m in models:
         print(f"\n== {m} ==")
-        score = 0
-        details = []
-        for i, (q, keys, anti, all_g) in enumerate(PUZZLES, 1):
-            try:
-                r = generate(m, q, num_predict=3000)
-                ans = r.get("response") or ""
-            except Exception as e:
-                print(f"  Z{i}: BLAD {e}")
-                details.append({"q": i, "error": str(e)})
-                continue
-            ok = grade(ans, keys, anti, all_g)
-            score += 1 if ok else 0
-            print(f"  Z{i}: {'OK ' if ok else 'NIE'}  (dl. odp: {len(ans.split())} slow)")
-            details.append({"q": i, "ok": ok, "answer": ans})
-        print(f"  SCORE: {score}/{len(PUZZLES)}")
-        all_results[m] = {"score": score, "max": len(PUZZLES), "details": details}
+        run_scores, last_details = [], []
+        for run_i in range(runs):
+            score, details = 0, []
+            for i, (q, keys, anti, all_g) in enumerate(PUZZLES, 1):
+                try:
+                    r = generate(m, q, num_predict=3000)
+                    ans = r.get("response") or ""
+                except Exception as e:
+                    details.append({"q": i, "error": str(e)})
+                    continue
+                ok = grade(ans, keys, anti, all_g)
+                score += 1 if ok else 0
+                details.append({"q": i, "ok": ok, "answer": ans})
+            run_scores.append(score)
+            last_details = details
+            print(f"  przebieg {run_i + 1}: {score}/{maxs}")
+        mean = sum(run_scores) / len(run_scores)
+        if runs > 1:
+            print(f"  SREDNIA: {mean:.1f}/{maxs}  (zakres {min(run_scores)}-{max(run_scores)}, przebiegi {run_scores})")
+        all_results[m] = {"mean": round(mean, 2), "runs": run_scores, "max": maxs, "details": last_details}
 
     print("\n== PODSUMOWANIE ==")
     for m, r in all_results.items():
-        print(f"  {m:<32} {r['score']}/{r['max']}")
+        if len(r["runs"]) > 1:
+            print(f"  {m:<30} srednia {r['mean']}/{r['max']}  zakres {min(r['runs'])}-{max(r['runs'])}  {r['runs']}")
+        else:
+            print(f"  {m:<30} {r['runs'][0]}/{r['max']}")
 
     with open("results_reasoning.json", "w") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=2)
-    print("\nZapisano: results_reasoning.json (zajrzyj tam, by ocenic niejednoznaczne recznie)")
+    print("\nZapisano: results_reasoning.json")
 
 
 if __name__ == "__main__":
