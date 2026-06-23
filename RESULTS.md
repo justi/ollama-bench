@@ -82,26 +82,43 @@ repeat=160 -> ~12k tokenów), ale **relacja się potwierdza**: devstral dramatyc
 od qwen na dużym kontekście (nie domknął, gdy qwen tak) - teza "sliding window attention
 nie skaluje się na dużym prompcie".
 
-## MACIERZ DECYZYJNA: szybkość × jakość × energia (zestaw fast)
+## Jakość kodowa (`bench_coding.py`, zestaw fast)
 
-Trzy osie naraz - bo "najszybszy" != "najlepszy do wszystkiego":
+Generacja 5 funkcji (auto-test: uruchomienie na przypadkach) + 3 bug finding = /8.
 
-| Model | szybkość (tok/s) | jakość reasoning (/6) | energia (kWh/1M) |
+| Model | kod /8 | generacja | bug finding |
 |---|---|---|---|
-| gpt-oss-fast | 52.6 (2.) | **6/6** (1.) | 0.24 (2.) |
-| qwen-fast | **61.7** (1.) | 4/6 (3.) | **0.20** (1.) |
-| devstral-fast | 11.8 (4.) | **6/6** (1.) | 1.06 (4.) |
-| deepseek-fast | 14.2 (3.) | 2-3/6 (4.) | 0.88 (3.) |
+| qwen3-coder:30b-fast | **8/8** | 5/5 | 3/3 |
+| devstral-small-2:24b-fast | **8/8** | 5/5 | 3/3 |
+| gpt-oss-fast | 7/8 | 5/5 | 2/3 |
+| deepseek-fast | 7/8 | 5/5 | 2/3 |
 
-(energia kWh/1M przy ~45 W; pomnóż przez swoją cenę kWh dla kosztu w zł)
+- **Wszystkie generują kod bezbłędnie (5/5)** - proste funkcje to dla nich problem rozwiązany.
+- Różnicuje **bug finding**: "mutacja listy podczas iteracji" (`lst.remove(x)` w pętli `for x in lst`)
+  złapały tylko qwen i devstral; gpt-oss i deepseek nie.
+- **deepseek-coder odbił się:** reasoning 2-3/6 (najgorszy), ale kod 7/8 - bo to model KODOWY.
 
-- **gpt-oss-fast - najlepszy kompromis:** 2. szybkość, najlepsza jakość (6/6), 2. energia. Domyślny wybór.
-- **qwen-fast - najszybszy i najoszczędniejszy,** ale średnia jakość reasoning. Idealny do dużego
-  wolumenu prostych zadań / generacji kodu.
-- **devstral-fast - jakość 6/6, ale najwolniejszy i najbardziej prądożerny** (~5× energii qwena).
+## MACIERZ DECYZYJNA: szybkość × reasoning × kod × energia (zestaw fast)
+
+Cztery osie - bo "jakość" zależy od TYPU zadania (logika != programowanie):
+
+| Model | szybkość (tok/s) | reasoning (/6) | kod (/8) | energia (kWh/1M) |
+|---|---|---|---|---|
+| qwen-fast | **61.7** (1.) | 4/6 | **8/8** | **0.20** (1.) |
+| gpt-oss-fast | 52.6 (2.) | **6/6** | 7/8 | 0.24 (2.) |
+| devstral-fast | 11.8 (4.) | **6/6** | **8/8** | 1.06 (4.) |
+| deepseek-fast | 14.2 (3.) | 2-3/6 | 7/8 | 0.88 (3.) |
+
+(energia kWh/1M przy ~45 W; pomnóż przez swoją cenę kWh dla kosztu)
+
+Wnioski końcowe (po 4 osiach):
+- **qwen-fast - do KODOWANIA najlepszy:** najszybszy, najtańszy, kod 8/8. Słabszy reasoning nie
+  szkodzi przy zadaniach programistycznych. Domyślny do codziennej pracy z kodem.
+- **gpt-oss-fast - najlepszy wszechstronny:** szybki, reasoning 6/6, kod 7/8, tani. Gdy zadania mieszane.
+- **devstral-fast - najwyższa jakość (6/6 + 8/8), ale wolny i prądożerny** (~5× energii qwena).
   Tylko gdy jakość krytyczna, a wolumen mały.
-- **deepseek-fast - najsłabszy ogólnie** (wolny, prądożerny, najgorszy reasoning). ALE to model
-  KODOWY - na zadaniach programistycznych może wypaść inaczej; tego wymiaru tu NIE mierzymy.
+- **deepseek-fast - tylko do kodu:** na logice odpada, na kodzie OK, ale wolny i drogi -
+  qwen robi to samo szybciej i taniej. Trudno znaleźć dla niego niszę w tym zestawie.
 
-Zastrzeżenie: "jakość" = reasoning logiczny (jeden wymiar). Brakuje wymiaru stricte kodowego
-(generacja kodu, znajdowanie bugów) - patrz README, sekcja o planowanym `bench_coding.py`.
+Najważniejsza lekcja: dodanie wymiaru kodowego ODWRÓCIŁO ocenę deepseeka (z "najsłabszy" na
+"OK do kodu"). Jedna oś jakości to za mało - "najlepszy model" zależy od tego, co robisz.
