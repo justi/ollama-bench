@@ -22,17 +22,20 @@ Surowy ranking eval (qwen >> gpt-oss > deepseek > devstral) to artefakt thinking
 Zestaw default (eval tok/s, output gpt-oss analogicznie niższy): qwen 54.8, gpt-oss 48.1,
 deepseek 10.4, devstral 8.9.
 
-## Reasoning = logika (zweryfikowany grading: anti-klucze, Z1 AND)
+## Reasoning = logika (poprawiony grader: anti-klucze, Z1 AND, LaTeX, diakrytyka)
 
-| Model | fast | default |
-|---|---|---|
-| gpt-oss | 5/6 | 5/6 |
-| devstral | 5/6 | 5/6 |
-| qwen3-coder | 4/6 | 3/6 |
-| deepseek | 3/6 | 2/6 |
+| Model | fast | default | uwaga |
+|---|---|---|---|
+| devstral | **6/6** | (usunięty) | +1 po naprawie diakrytyki |
+| gpt-oss | 5/6 | 5/6 | bez zmian |
+| qwen3-coder | 3/6 | 3/6 | fast spadł 4→3 (nondeterminizm) |
+| deepseek | (usunięty) | (usunięty) | stary auto 3/2, dolne oszacowanie |
 
-Niżej niż dawne "6/6" - bo grading jest teraz surowszy i wiarygodny (anti-klucze odrzucają
-sprzeczne rozumowanie, Z1 wymaga obu liczb). Ranking: gpt-oss ≈ devstral > qwen > deepseek.
+**Re-grade poprawionym graderem NIE potwierdził uniwersalnego "+1".** devstral wzrósł (5→6
+przez diakrytykę), ale qwen SPADŁ (4→3) - to nondeterminizm (temp 0.7) daje **±1 szum** między
+przebiegami, który przykrywa efekt gradera. Wniosek: reasoning auto-grade to przybliżenie z
+szumem ±1; rzetelnie wymaga uśrednienia wielu przebiegów + human eval (meta-teza znów).
+deepseek i devstral:24b default usunięto dla miejsca - ich reasoning nie był re-mierzony.
 
 ## Kod = generacja (auto-test) + bug finding
 
@@ -62,10 +65,12 @@ tokenów generuje ~3.6× więcej (z myśleniem). To realny koszt thinking.
 
 | Model | output tok/s | reasoning /6 | kod /8 | energia kWh/1M |
 |---|---|---|---|---|
-| qwen-fast | **61.8** (1.) | 4/6 | 8/8 | **0.20** (1.) |
-| gpt-oss-fast | 15.1 (2.) | **5/6** | 8/8 | 0.83 (2.) |
-| deepseek-fast | 14.0 (3.) | 3/6 | 7/8 | 0.89 (3.) |
-| devstral-fast | 12.4 (4.) | **5/6** | 8/8 | 1.01 (4.) |
+| qwen-fast | **61.8** (1.) | 3/6 | 8/8 | **0.20** (1.) |
+| gpt-oss-fast | 15.1 (2.) | 5/6 | 8/8 | 0.83 (2.) |
+| deepseek-fast | 14.0 (3.) | (usunięty) | 7/8 | 0.89 (3.) |
+| devstral-fast | 12.4 (4.) | **6/6** | 8/8 | 1.01 (4.) |
+
+(reasoning po poprawionym graderze; ±1 szum przez nondeterminizm temp 0.7)
 
 Wnioski końcowe (po audycie - inne niż przed):
 - **qwen-fast dominuje wydajność:** ~4× szybszy widoczny output niż reszta i 4-5× tańszy
