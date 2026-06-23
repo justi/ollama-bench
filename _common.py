@@ -20,14 +20,18 @@ def load_prompts():
 
 
 def list_loaded():
-    """Modele aktualnie zaladowane w pamieci (GET /api/ps)."""
+    """Modele aktualnie zaladowane w pamieci (GET /api/ps).
+
+    Zwraca liste nazw, albo None gdy odczyt /api/ps SIE NIE POWIODL. Rozroznienie jest
+    wazne: [] znaczy 'pamiec pusta', None znaczy 'nie wiadomo' - nie wolno mylic awarii
+    kontroli izolacji z poprawna izolacja (codex finding #1)."""
     req = urllib.request.Request(OLLAMA_HOST + "/api/ps")
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         return [m["name"] for m in data.get("models", [])]
     except Exception:
-        return []
+        return None
 
 
 def unload(model):
@@ -38,11 +42,24 @@ def unload(model):
         pass
 
 
-def isolate(target):
+def isolate(target, poll_timeout=30):
     """Gwarantuje, ze w pamieci nie ma INNYCH modeli niz mierzony - konkurencja o VRAM/RAM
-    zanizа tok/s i czyni pomiar niewiarygodnym. Wyladowuje wszystko zaladowane."""
-    for m in list_loaded():
+    zanizа tok/s i czyni pomiar niewiarygodnym. Wyladowuje wszystko i CZEKA, az pamiec
+    bedzie pusta (unload jest asynchroniczny - /api/ps chwile jeszcze pokazuje model;
+    codex finding #2)."""
+    loaded = list_loaded()
+    if loaded is None:
+        return  # nie udalo sie odczytac stanu - nie ruszamy na slepo
+    for m in loaded:
         unload(m)
+    # poll az pamiec pusta lub timeout
+    waited = 0
+    while waited < poll_timeout:
+        cur = list_loaded()
+        if cur is None or len(cur) == 0:
+            break
+        time.sleep(1)
+        waited += 1
 
 
 def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_alive=None):

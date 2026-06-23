@@ -11,6 +11,7 @@ OSTRZEZENIE BEZPIECZENSTWA: skrypt URUCHAMIA (exec) kod wygenerowany przez model
 lokalnych przypadkach testowych. Uruchamiaj tylko na zaufanych modelach lokalnych.
 Kazda funkcja jest exec w osobnym namespace, ale to nadal wykonanie kodu z LLM.
 """
+import ast
 import json
 import re
 import sys
@@ -19,14 +20,34 @@ from _common import generate, load_prompts
 
 
 def extract_code(text):
-    """Wyciaga kod z odpowiedzi: preferuje blok ```python``` zawierajacy 'def'."""
-    blocks = re.findall(r"```(?:python|py)?\s*(.*?)```", text, re.DOTALL)
-    if blocks:
-        for b in blocks:
-            if "def " in b:
+    """Wyciaga kod z odpowiedzi: preferuje fenced block z 'def', ktory parsuje sie do AST.
+
+    Akceptuje dowolna etykiete jezyka (python/Python/python3/py...) case-insensitive
+    i waliduje przez ast.parse, by nie exec'owac prozy (codex #8)."""
+    blocks = re.findall(r"```[a-zA-Z0-9_+-]*\s*(.*?)```", text, re.DOTALL)
+    candidates = blocks if blocks else [text]
+    for b in candidates:  # najpierw blok z 'def', ktory sie parsuje
+        if "def " in b:
+            try:
+                ast.parse(b)
                 return b
-        return blocks[0]
-    return text  # fallback: caly tekst (model mogl nie uzyc bloku)
+            except SyntaxError:
+                continue
+    for b in candidates:  # potem dowolny parsowalny
+        try:
+            ast.parse(b)
+            return b
+        except SyntaxError:
+            continue
+    return candidates[0]
+
+
+def _norm(x):
+    """Kanonizacja do porownania: krotki -> listy rekurencyjnie, by [(1,6)] == [[1,6]]
+    (codex #4 - semantycznie poprawny wynik w innym ksztalcie nie ma falszywie oblewac)."""
+    if isinstance(x, (list, tuple)):
+        return [_norm(i) for i in x]
+    return x
 
 
 def run_generated(code, func_name, tests):
@@ -44,7 +65,7 @@ def run_generated(code, func_name, tests):
             got = fn(*args)
         except Exception as e:
             return False, f"runtime {type(e).__name__} na {args}"
-        if got != expected:
+        if _norm(got) != _norm(expected):
             return False, f"{func_name}({args})={got!r}, oczek {expected!r}"
     return True, "OK"
 
@@ -85,14 +106,17 @@ def main():
         bug_pass = 0
         print("  [bug finding]")
         for i, t in enumerate(bug_tasks, 1):
+            ans = ""
             try:
                 r = generate(m, t["prompt"], num_predict=800)
-                ok = grade_bug(r.get("response") or "", t["keys"])
+                ans = r.get("response") or ""
+                ok = grade_bug(ans, t["keys"])
             except Exception:
                 ok = False
             bug_pass += 1 if ok else 0
             print(f"    bug {i:<14} {'OK ' if ok else 'NIE'}")
-            details.append({"task": f"bug{i}", "ok": ok})
+            # zapisujemy pelna odpowiedz - auto-grade bywa zawodny, audyt reczny po (codex #5)
+            details.append({"task": f"bug{i}", "ok": ok, "answer": ans})
         score = gen_pass + bug_pass
         print(f"  SCORE: {score}/{total}  (kod {gen_pass}/{len(gen_tasks)}, bugi {bug_pass}/{len(bug_tasks)})")
         results[m] = {"score": score, "max": total, "gen": gen_pass, "bug": bug_pass, "details": details}

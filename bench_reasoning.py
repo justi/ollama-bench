@@ -13,15 +13,21 @@ import sys
 
 from _common import generate, load_prompts
 
-# (pytanie, lista akceptowanych kluczy) - czytane z prompts.json
-PUZZLES = [(p["q"], p["keys"]) for p in load_prompts()["reasoning"]]
+# (pytanie, klucze akceptujace, klucze ODRZUCAJACE) - czytane z prompts.json
+PUZZLES = [(p["q"], p["keys"], p.get("anti")) for p in load_prompts()["reasoning"]]
 
 
-def grade(answer, keys):
+def grade(answer, keys, anti=None):
     # Normalizuj: usun markdown (**bold**, #, `) i sklej whitespace, zeby klucz
     # zlapal odpowiedz typu "**4**\nDziewczyn: **3**". re.DOTALL bo '.' ma przejsc przez newline.
     a = re.sub(r"[*#`]", " ", answer.lower())
     a = re.sub(r"\s+", " ", a)
+    # anti: jesli odpowiedz zawiera wzorzec sprzeczny/blędny, odrzuc MIMO trafienia keys.
+    # Bez tego Monty Hall "zmieniam, ale prawdopodobienstwo rowne" falszywie przechodzi (codex #6).
+    if anti:
+        for k in anti:
+            if re.search(k.lower(), a, re.DOTALL):
+                return False
     for k in keys:
         if re.search(k.lower(), a, re.DOTALL):
             return True
@@ -39,7 +45,7 @@ def main():
         print(f"\n== {m} ==")
         score = 0
         details = []
-        for i, (q, keys) in enumerate(PUZZLES, 1):
+        for i, (q, keys, anti) in enumerate(PUZZLES, 1):
             try:
                 r = generate(m, q, num_predict=3000)
                 ans = r.get("response") or ""
@@ -47,7 +53,7 @@ def main():
                 print(f"  Z{i}: BLAD {e}")
                 details.append({"q": i, "error": str(e)})
                 continue
-            ok = grade(ans, keys)
+            ok = grade(ans, keys, anti)
             score += 1 if ok else 0
             print(f"  Z{i}: {'OK ' if ok else 'NIE'}  (dl. odp: {len(ans.split())} slow)")
             details.append({"q": i, "ok": ok, "answer": ans})

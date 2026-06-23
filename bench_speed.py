@@ -37,9 +37,10 @@ def measure_model(model, prompt, num_predict, runs=RUNS):
         generate(model, "Czesc", num_predict=8)
     except Exception:
         pass
-    # Weryfikacja izolacji: po zaladowaniu w pamieci powinien byc tylko mierzony model.
+    # Weryfikacja izolacji: po zaladowaniu w pamieci powinien byc DOKLADNIE mierzony model.
+    # loaded == None (blad odczytu /api/ps) albo inne modele -> izolacja niepewna (codex #1).
     loaded = list_loaded()
-    isolation_ok = loaded == [model] or loaded == []
+    isolation_ok = loaded == [model]
     rates, last = [], None
     for _ in range(runs):
         last = generate(model, prompt, num_predict=num_predict)
@@ -67,7 +68,9 @@ def main():
         sys.exit(1)
 
     prompt = build_big_prompt() if big else SMALL_PROMPT
-    num_predict = 64 if big else 300
+    # --big: 256 (nie 64) tokenow generacji - przy 64 gen tok/s jest podatne na szum/EOS
+    # po duzym promptcie (codex #3). Prompt-eval i tak mierzymy osobno przez prompt_tok_s.
+    num_predict = 256 if big else 300
     mode = "DUZY PROMPT (~12k tok)" if big else "maly prompt"
     print(f"== bench_speed [{mode}] : warmup + mediana z {RUNS} przebiegow ==\n")
 

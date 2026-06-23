@@ -20,9 +20,13 @@ def main():
     if len(sys.argv) < 2:
         print("Uzycie: python3 bench_numpredict.py MODEL [low high]")
         sys.exit(1)
-    model = sys.argv[2 - 1]
-    low = int(sys.argv[3 - 1]) if len(sys.argv) > 2 else 1500
-    high = int(sys.argv[4 - 1]) if len(sys.argv) > 3 else 3000
+    model = sys.argv[1]
+    low = int(sys.argv[2]) if len(sys.argv) > 2 else 1500
+    high = int(sys.argv[3]) if len(sys.argv) > 3 else 3000
+    if low >= high:
+        print(f"BLAD: dolny prog ({low}) musi byc mniejszy od gornego ({high}). "
+              f"Podaj: MODEL low high")
+        sys.exit(1)
 
     print(f"== bench_numpredict [{model}] : num_predict {low} vs {high} ==\n")
     rows = []

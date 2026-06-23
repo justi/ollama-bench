@@ -29,7 +29,8 @@
     },
     {
       "q": "Monty Hall: sa 3 bramki, za jedna auto. Wybierasz bramke 1. Prowadzacy otwiera bramke 3 (pusta). Czy oplaca sie zmienic wybor na bramke 2? Podaj decyzje i prawdopodobienstwo.",
-      "keys": ["zmieni", "2/3", "66", "tak.*zmie"]
+      "keys": ["zmieni", "2/3", "66"],
+      "anti": ["nie zmienia.{0,25}prawdopodob", "rowne prawdopodob", "bez znaczenia", "nie ma znaczenia", "takie samo prawdopodob", "1/2"]
     },
     {
       "q": "Liczba 76 to kod ASCII ktorej wielkiej litery alfabetu lacinskiego? Podaj sama litere.",
@@ -77,7 +78,7 @@
       },
       {
         "prompt": "Znajdz blad w tym kodzie Python:\n\nfor x in lst:\n    if x < 0:\n        lst.remove(x)\n\nOpisz krotko, na czym polega blad.",
-        "keys": ["modyfik.{0,15}iteracj", "podczas iteracj", "mutacj", "remove.{0,15}iteracj", "zmienia.{0,15}petl", "pomija", "w trakcie iteracj"]
+        "keys": ["modyfik.{0,20}iter", "iter.{0,20}modyfik", "podczas iter", "w trakcie iter", "mutacj", "remove.{0,20}iter", "zmienia.{0,15}petl", "pomija", "usuw.{0,20}iter", "iterowan", "zmian.{0,20}list.{0,20}for", "modyfikac", "modyfikow"]
       },
       {
         "prompt": "Znajdz blad lub co poprawic w tym kodzie Python:\n\ndef f(x):\n    if x == None:\n        return 0\n    return x * 2\n\nOpisz krotko.",

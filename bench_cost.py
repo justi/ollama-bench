@@ -40,7 +40,8 @@ def main():
         print("Uzycie: python3 bench_cost.py MODEL=TOKS [MODEL=TOKS ...]")
         sys.exit(1)
     extra = f", cena {PRICE} zl/kWh" if SHOW_PRICE else ""
-    print(f"== zuzycie energii / 1M tokenow (moc {POWER_W} W{extra}) ==\n")
+    print(f"== szacunkowa energia / 1M tokenow OUTPUT - sama generacja (moc {POWER_W} W{extra}) ==")
+    print("   nie obejmuje: prompt processingu, loadu modelu, roznic mocy miedzy modelami (codex #9)\n")
     head = f"{'model':<30}{'tok/s':>8}{'h/1M':>9}{'kWh/1M':>10}"
     if SHOW_PRICE:
         head += f"{'zl/1M':>9}"
