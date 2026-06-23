@@ -7,7 +7,8 @@
     "_opis": "Duzy prompt (~12k tokenow) symulujacy kontekst narzedziowy agenta: prefix + block*repeat + suffix.",
     "prefix": "Ponizej znajduje sie obszerna dokumentacja narzedzi dostepnych dla agenta. Przeczytaj ja w calosci, a nastepnie odpowiedz na pytanie na koncu.\n\n",
     "block": "TOOL: read_file(path) - czyta plik z dysku i zwraca jego tresc. TOOL: write_file(path, content) - zapisuje tresc do pliku. TOOL: run_bash(cmd) - uruchamia polecenie powloki i zwraca wynik. TOOL: search(query) - przeszukuje repozytorium po wzorcu. Kazde narzedzie zwraca JSON z polem result lub error.\n",
-    "repeat": 500,
+    "_kalibracja": "block ~75 tokenow; repeat 160 -> ~12k tokenow (cel jak OpenCode-like prompt). 500 dawalo ~40k i zawyzalo czasy.",
+    "repeat": 160,
     "suffix": "\nPYTANIE: streszcz w 3 zdaniach, co robi narzedzie run_bash."
   },
 

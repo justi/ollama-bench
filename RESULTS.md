@@ -26,6 +26,14 @@ To odtwarza dwie rzeczy z artykułu naraz: qwen jest dobry na reasoning (5/6, bl
 **oraz** automatyczna metryka rozjeżdża się z ręczną oceną - dokładnie teza "automatyczne checky
 zawyżają/zaniżają, potrzeba human eval".
 
+## Duży prompt (`bench_speed.py --big`, qwen vs devstral)
+
+Pierwszy przebieg (repeat=500, ~40k tokenów - za dużo): qwen **388 s** (ukończył),
+devstral **timeout >900 s**. Wartości bezwzględne zawyżone złą kalibracją promptu
+(repeat poprawione na 160 -> ~12k tokenów), ale **relacja z artykułu się potwierdza**:
+devstral jest dramatycznie wolniejszy od qwen na dużym kontekście (nie domknął, gdy qwen tak).
+To dokładnie teza "sliding window attention nie skaluje się na dużym prompcie".
+
 ## Czego nie udało się zmierzyć
 
 - **gpt-oss** (`num_predict` 293→747 słów, gpt-oss reasoning) - lokalny blob GGUF
