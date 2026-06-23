@@ -11,9 +11,15 @@ relacja i rząd wielkości względem artykułu.
 | qwen3-coder:30b-fast | 53-60 tok/s | ~52 tok/s | ✓ najszybszy |
 | gpt-oss:20b (świeży) | 54 tok/s | ~43-45 tok/s | ✓ |
 | devstral-small-2:24b-fast | 13.8 tok/s | ~12 tok/s | ✓ |
-| gemma4:31b-fast | 9.6 tok/s | ~6 tok/s | ✓ najwolniejszy, niezdatny do pracy interaktywnej |
+| gemma4:31b-fast | 9.6 tok/s | ~6 tok/s | ✓ niezdatny do pracy interaktywnej |
+| deepseek-coder:33b | 9.4 tok/s | "2-3x wolniejszy" | ✓ realnie ~5.7x w gen rate |
 
-Relacja z artykułu (qwen wielokrotnie szybszy od gemmy) - odtworzona.
+Relacja z artykułu (qwen wielokrotnie szybszy) - odtworzona.
+
+**Teza o deepseeku doprecyzowana.** Artykuł mówi "2-3x wolniejszy" - to całkowity czas
+zadania (jak mierzyło źródło). W czystej prędkości generacji deepseek (9.4 tok/s) jest
+**~5.7x wolniejszy** od qwen/gpt-oss (~54 tok/s), czyli teza jest raczej zaniżona.
+deepseek generuje tak wolno jak odrzucona gemma - na interaktywną pracę się nie nadaje.
 
 ## num_predict i thinking overflow (`bench_numpredict.py`, gpt-oss:20b)
 
