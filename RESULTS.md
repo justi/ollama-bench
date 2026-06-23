@@ -82,6 +82,24 @@ Najważniejsza lekcja: bez audytu (grok #1) macierz fałszywie pokazywała gpt-o
 kompromis szybkość+jakość". Po rozdzieleniu output/eval tok/s realny wybór to: **qwen do
 przepustowości, gpt-oss/devstral do jakości** - a thinking ma mierzalną cenę w czasie i energii.
 
+## MACIERZ DECYZYJNA: zestaw DEFAULT (publiczne tagi)
+
+| Model | output tok/s | reasoning /6 | kod /8 | energia kWh/1M |
+|---|---|---|---|---|
+| qwen3-coder:30b | **57.1** (1.) | 3/6 | 8/8 | **0.22** (1.) |
+| gpt-oss:20b | 22.6 (2.) | **5/6** | 8/8 | 0.55 (2.) |
+| deepseek-coder:33b | 14.4 (3.) | 2/6 | 8/8 | 0.87 (3.) |
+| devstral:24b | 11.4 (4.) | **5/6** | 7/8 | 1.10 (4.) |
+
+Obraz spójny z fast - qwen dominuje wydajność, gpt-oss/devstral wygrywają jakością.
+Różnice fast vs default:
+- gpt-oss DEFAULT ma WYŻSZY output (22.6) niż fast (15.1) - default myśli mniej (thinking
+  653 zn vs fast 915 zn). Wariant fast paradoksalnie więcej rozumuje na tym prompcie.
+- qwen fast szybszy (61.8 vs 57.1) i odrobinę lepszy reasoning (4/6 vs 3/6) - częściowo
+  nondeterminizm (temp 0.7).
+- deepseek default kod 8/8 (fast 7/8), devstral default kod 7/8 (fast 8/8) - wariancja modelu.
+- We wszystkich przypadkach gpt-oss to jedyny thinking-model: output realnie << eval.
+
 ## Metodologia (dlaczego liczbom można ufać)
 
 - **Load wykluczony:** tok/s z `eval_count/eval_duration` (ns); `load_duration` osobno.
