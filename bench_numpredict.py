@@ -9,17 +9,11 @@ Odtwarza liczby: "domyslny limit ~293 slow -> num_predict 3000 ~747 slow, ~45 s 
 import json
 import sys
 
-from _common import generate, total_seconds, word_count
+from _common import generate, total_seconds, word_count, load_prompts
 
-# Zadanie wymagajace dluzszej odpowiedzi - model z myslenie najpierw "mysli",
+# Zadanie wymagajace dluzszej odpowiedzi - model z mysleniem najpierw "mysli",
 # wiec przy niskim limicie ucina wlasciwa odpowiedz (thinking overflow).
-TASK = (
-    "Rozwaz odwrotny lancuch przyczynowo-skutkowy. Model jezykowy osiagnal slaby "
-    "wynik AUC na zbiorze testowym. Wymien co najmniej dwie alternatywne sciezki "
-    "przyczyn (od skutku do przyczyny), dla kazdego kroku zaznacz czy przyczyna jest "
-    "konieczna czy wystarczajaca, i wskaz, ktora sciezka jest najbardziej prawdopodobna. "
-    "Przedstaw to w formie tabeli z uzasadnieniem."
-)
+TASK = load_prompts()["numpredict_task"]
 
 
 def main():

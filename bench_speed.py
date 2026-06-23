@@ -9,31 +9,16 @@ Odtwarza liczby typu "qwen ~52 tok/s, gemma ~6 tok/s, devstral ~12 tok/s".
 import json
 import sys
 
-from _common import generate, gen_tok_s, prompt_tok_s, total_seconds
+from _common import generate, gen_tok_s, prompt_tok_s, total_seconds, load_prompts
 
-SMALL_PROMPT = (
-    "Napisz wypracowanie na okolo 250 slow o tym, dlaczego warto pic wode "
-    "kazdego dnia. Pisz plynnie, bez punktow."
-)
-
-# Duzy prompt symuluje realny kontekst narzedziowy (system + definicje toolow + historia),
-# jak w agentowym IDE. ~12 tys. tokenow zlepionych z powtorzonej instrukcji.
-BIG_PREFIX = (
-    "Ponizej znajduje sie obszerna dokumentacja narzedzi dostepnych dla agenta. "
-    "Przeczytaj ja w calosci, a nastepnie odpowiedz na pytanie na koncu.\n\n"
-)
-BIG_BLOCK = (
-    "TOOL: read_file(path) - czyta plik z dysku i zwraca jego tresc. "
-    "TOOL: write_file(path, content) - zapisuje tresc do pliku. "
-    "TOOL: run_bash(cmd) - uruchamia polecenie powloki i zwraca wynik. "
-    "TOOL: search(query) - przeszukuje repozytorium po wzorcu. "
-    "Kazde narzedzie zwraca JSON z polem result lub error.\n"
-)
+P = load_prompts()
+SMALL_PROMPT = P["speed_small"]
 
 
 def build_big_prompt():
-    # ~120 znakow * 500 powtorzen ~ 60k znakow ~ 12-15k tokenow
-    return BIG_PREFIX + (BIG_BLOCK * 500) + "\nPYTANIE: streszcz w 3 zdaniach, co robi narzedzie run_bash."
+    # prefix + block*repeat + suffix -> ~12-15k tokenow (kontekst narzedziowy agenta)
+    b = P["speed_big"]
+    return b["prefix"] + (b["block"] * b["repeat"]) + b["suffix"]
 
 
 def main():

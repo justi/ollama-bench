@@ -11,39 +11,10 @@ import json
 import re
 import sys
 
-from _common import generate
+from _common import generate, load_prompts
 
-# (pytanie, lista akceptowanych kluczy - dopasowanie case-insensitive, dowolny z kluczy zalicza)
-PUZZLES = [
-    (
-        "Marek ma tyle samo braci co siostr. Jego siostra Ania ma dwa razy wiecej braci "
-        "niz siostr. Ilu jest chlopcow, a ile dziewczynek w rodzinie? Podaj same liczby.",
-        [r"\b4\b.*\b3\b", r"czterech.*trzy", r"4 chlop", r"3 dziew"],
-    ),
-    (
-        "Na wyspie sa rycerze (zawsze mowia prawde) i lotrzy (zawsze klamia). Spotykasz osobe "
-        "A, ktora mowi: 'Jestem lotrem'. Kim jest A? Wyjasnij krotko.",
-        [r"nie moze.*istnie", r"sprzeczn", r"paradoks", r"ani rycerz", r"niemozliw"],
-    ),
-    (
-        "Masz problem przewozenia: wilk, koza i kapusta, lodka miesci ciebie i jeden przedmiot. "
-        "Ile minimalnie przepraw przez rzeke potrzeba? Podaj liczbe.",
-        [r"\b7\b", r"siedem"],
-    ),
-    (
-        "Monty Hall: sa 3 bramki, za jedna auto. Wybierasz bramke 1. Prowadzacy otwiera bramke 3 "
-        "(pusta). Czy oplaca sie zmienic wybor na bramke 2? Podaj decyzje i prawdopodobienstwo.",
-        [r"zmieni", r"2/3", r"66", r"tak.*zmie"],
-    ),
-    (
-        "Liczba 76 to kod ASCII ktorej wielkiej litery alfabetu lacinskiego? Podaj sama litere.",
-        [r"\bL\b"],
-    ),
-    (
-        "Slowo HELLO odwroc, wez trzecia litere wyniku. Jaka to litera? Podaj sama litere.",
-        [r"\bL\b"],
-    ),
-]
+# (pytanie, lista akceptowanych kluczy) - czytane z prompts.json
+PUZZLES = [(p["q"], p["keys"]) for p in load_prompts()["reasoning"]]
 
 
 def grade(answer, keys):

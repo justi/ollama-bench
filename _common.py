@@ -6,6 +6,18 @@ import urllib.request
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
+_PROMPTS = None
+
+
+def load_prompts():
+    """Wczytuje prompts.json z katalogu repo (cache w pamieci)."""
+    global _PROMPTS
+    if _PROMPTS is None:
+        here = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(here, "prompts.json"), encoding="utf-8") as f:
+            _PROMPTS = json.load(f)
+    return _PROMPTS
+
 
 def generate(model, prompt, num_predict=None, options=None, timeout=900):
     """Wywoluje /api/generate (stream=false) i zwraca pelny JSON odpowiedzi.

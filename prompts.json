@@ -1,0 +1,42 @@
+{
+  "_opis": "Wszystkie prompty uzywane przez benchmarki. Edytuj tutaj - skrypty czytaja z tego pliku.",
+
+  "speed_small": "Napisz wypracowanie na okolo 250 slow o tym, dlaczego warto pic wode kazdego dnia. Pisz plynnie, bez punktow.",
+
+  "speed_big": {
+    "_opis": "Duzy prompt (~12k tokenow) symulujacy kontekst narzedziowy agenta: prefix + block*repeat + suffix.",
+    "prefix": "Ponizej znajduje sie obszerna dokumentacja narzedzi dostepnych dla agenta. Przeczytaj ja w calosci, a nastepnie odpowiedz na pytanie na koncu.\n\n",
+    "block": "TOOL: read_file(path) - czyta plik z dysku i zwraca jego tresc. TOOL: write_file(path, content) - zapisuje tresc do pliku. TOOL: run_bash(cmd) - uruchamia polecenie powloki i zwraca wynik. TOOL: search(query) - przeszukuje repozytorium po wzorcu. Kazde narzedzie zwraca JSON z polem result lub error.\n",
+    "repeat": 500,
+    "suffix": "\nPYTANIE: streszcz w 3 zdaniach, co robi narzedzie run_bash."
+  },
+
+  "numpredict_task": "Rozwaz odwrotny lancuch przyczynowo-skutkowy. Model jezykowy osiagnal slaby wynik AUC na zbiorze testowym. Wymien co najmniej dwie alternatywne sciezki przyczyn (od skutku do przyczyny), dla kazdego kroku zaznacz czy przyczyna jest konieczna czy wystarczajaca, i wskaz, ktora sciezka jest najbardziej prawdopodobna. Przedstaw to w formie tabeli z uzasadnieniem.",
+
+  "reasoning": [
+    {
+      "q": "Marek ma tyle samo braci co siostr. Jego siostra Ania ma dwa razy wiecej braci niz siostr. Ilu jest chlopcow, a ile dziewczynek w rodzinie? Podaj same liczby.",
+      "keys": ["\\b4\\b.*\\b3\\b", "czterech.*trzy", "4 chlop", "3 dziew"]
+    },
+    {
+      "q": "Na wyspie sa rycerze (zawsze mowia prawde) i lotrzy (zawsze klamia). Spotykasz osobe A, ktora mowi: 'Jestem lotrem'. Kim jest A? Wyjasnij krotko.",
+      "keys": ["nie moze.*istnie", "sprzeczn", "paradoks", "ani rycerz", "niemozliw"]
+    },
+    {
+      "q": "Masz problem przewozenia: wilk, koza i kapusta, lodka miesci ciebie i jeden przedmiot. Ile minimalnie przepraw przez rzeke potrzeba? Podaj liczbe.",
+      "keys": ["\\b7\\b", "siedem"]
+    },
+    {
+      "q": "Monty Hall: sa 3 bramki, za jedna auto. Wybierasz bramke 1. Prowadzacy otwiera bramke 3 (pusta). Czy oplaca sie zmienic wybor na bramke 2? Podaj decyzje i prawdopodobienstwo.",
+      "keys": ["zmieni", "2/3", "66", "tak.*zmie"]
+    },
+    {
+      "q": "Liczba 76 to kod ASCII ktorej wielkiej litery alfabetu lacinskiego? Podaj sama litere.",
+      "keys": ["\\bL\\b"]
+    },
+    {
+      "q": "Slowo HELLO odwroc, wez trzecia litere wyniku. Jaka to litera? Podaj sama litere.",
+      "keys": ["\\bL\\b"]
+    }
+  ]
+}
