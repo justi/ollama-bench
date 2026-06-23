@@ -19,7 +19,33 @@ def load_prompts():
     return _PROMPTS
 
 
-def generate(model, prompt, num_predict=None, options=None, timeout=900):
+def list_loaded():
+    """Modele aktualnie zaladowane w pamieci (GET /api/ps)."""
+    req = urllib.request.Request(OLLAMA_HOST + "/api/ps")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        return [m["name"] for m in data.get("models", [])]
+    except Exception:
+        return []
+
+
+def unload(model):
+    """Wyladowuje model z pamieci (keep_alive=0). Cicho ignoruje bledy."""
+    try:
+        generate(model, "", num_predict=0, keep_alive=0, timeout=60)
+    except Exception:
+        pass
+
+
+def isolate(target):
+    """Gwarantuje, ze w pamieci nie ma INNYCH modeli niz mierzony - konkurencja o VRAM/RAM
+    zanizа tok/s i czyni pomiar niewiarygodnym. Wyladowuje wszystko zaladowane."""
+    for m in list_loaded():
+        unload(m)
+
+
+def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_alive=None):
     """Wywoluje /api/generate (stream=false) i zwraca pelny JSON odpowiedzi.
 
     Kluczowe pola w odpowiedzi Ollamy:
@@ -39,6 +65,8 @@ def generate(model, prompt, num_predict=None, options=None, timeout=900):
         "stream": False,
         "options": opts,
     }
+    if keep_alive is not None:
+        payload["keep_alive"] = keep_alive
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         OLLAMA_HOST + "/api/generate",

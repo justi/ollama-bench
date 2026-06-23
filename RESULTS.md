@@ -4,15 +4,28 @@
 gpt-oss pobrany świeżo (`gpt-oss:20b`). Wartości bezwzględne zależą od sprzętu - liczy się
 relacja i rząd wielkości względem artykułu.
 
-## tok/s generacji (`bench_speed.py`, mały prompt)
+## tok/s generacji (`bench_speed.py`, mały prompt, warmup + mediana z 3)
 
-| Model | Zmierzone | Artykuł | Zgodność |
+| Model | Zmierzone (warm, mediana) | Artykuł | Zgodność |
 |---|---|---|---|
-| qwen3-coder:30b-fast | 53-60 tok/s | ~52 tok/s | ✓ najszybszy |
-| gpt-oss:20b (świeży) | 54 tok/s | ~43-45 tok/s | ✓ |
-| devstral-small-2:24b-fast | 13.8 tok/s | ~12 tok/s | ✓ |
-| gemma4:31b-fast | 9.6 tok/s | ~6 tok/s | ✓ niezdatny do pracy interaktywnej |
-| deepseek-coder:33b | 9.4 tok/s | "2-3x wolniejszy" | ✓ realnie ~5.7x w gen rate |
+| qwen3-coder:30b-fast | 62.0 tok/s (61.9-62.1) | ~52 tok/s | ✓ najszybszy |
+| gpt-oss:20b (świeży) | 53.6 tok/s | ~43-45 tok/s | ✓ |
+| deepseek-coder:33b | 10.3 tok/s (8.2-11.9) | "2-3x wolniejszy" | ✓ realnie ~6x |
+| devstral-small-2:24b-fast | 7-14 tok/s (czuły na stan systemu) | ~12 tok/s | ✓ z zastrzeżeniem |
+| gemma4:31b-fast (usunięty) | 9.6 tok/s (cold, 1 pomiar) | ~6 tok/s | ✓ |
+
+### Metodologia pomiaru tok/s (warto wiedzieć)
+
+- **Ładowanie wykluczone:** gen tok/s = `eval_count / eval_duration`; Ollama raportuje
+  `eval_duration` osobno od `load_duration`, więc czas wczytania modelu z dysku NIE wchodzi
+  do wyniku.
+- **Warmup + mediana z 3:** pierwszy (cold) przebieg bywa zaniżony przez kompilację kerneli
+  Metal. Bez warmupu qwen schodził do ~53 tok/s; z warmupem stabilne **62** (61.9-62.1).
+- **Stan systemu zniekształca pomiar (najważniejsze):** devstral wyszedł 13.8 tok/s na początku
+  sesji, a 7.1 pod koniec - nie przez warmup, lecz przez memory pressure (20 mln pageoutów,
+  38% wolnego RAM), duży KV cache przy `num_ctx 65536` i nagrzanie po serii pomiarów.
+  Rzetelny pomiar wymaga: jeden model w pamięci, świeży/chłodny system, kontrolowany `num_ctx`.
+  To sam w sobie dowód tezy "benchmark ≠ rzeczywistość".
 
 Relacja z artykułu (qwen wielokrotnie szybszy) - odtworzona.
 
