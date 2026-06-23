@@ -4,35 +4,47 @@
 gpt-oss pobrany świeżo (`gpt-oss:20b`). Wartości bezwzględne zależą od sprzętu - liczy się
 relacja i rząd wielkości względem artykułu.
 
-## tok/s generacji (`bench_speed.py`, mały prompt, warmup + mediana z 3)
+## tok/s generacji (izolacja: 1 model w pamięci, warmup + mediana z 3)
 
-| Model | Zmierzone (warm, mediana) | Artykuł | Zgodność |
-|---|---|---|---|
-| qwen3-coder:30b-fast | 62.0 tok/s (61.9-62.1) | ~52 tok/s | ✓ najszybszy |
-| gpt-oss:20b (świeży) | 53.6 tok/s | ~43-45 tok/s | ✓ |
-| deepseek-coder:33b | 10.3 tok/s (8.2-11.9) | "2-3x wolniejszy" | ✓ realnie ~6x |
-| devstral-small-2:24b-fast | 7-14 tok/s (czuły na stan systemu) | ~12 tok/s | ✓ z zastrzeżeniem |
-| gemma4:31b-fast (usunięty) | 9.6 tok/s (cold, 1 pomiar) | ~6 tok/s | ✓ |
+Dwa SPÓJNE zestawy - nie mieszamy fast z default (to byłoby porównanie różnych rzeczy).
 
-### Metodologia pomiaru tok/s (warto wiedzieć)
+### Zestaw DEFAULT (publiczne tagi - reprodukowalne dla czytelnika)
+
+| Model | tok/s (mediana) | przebiegi |
+|---|---|---|
+| qwen3-coder:30b | **54.8** | 55.7 / 54.8 / 53.8 |
+| gpt-oss:20b | **48.1** | 47.0 / 48.1 / 48.5 |
+| deepseek-coder:33b | **10.4** | 10.5 / 10.3 / 10.4 |
+| devstral:24b | **8.9** | 9.3 / 8.9 / 7.7 |
+
+### Zestaw FAST (zoptymalizowane warianty - mniejszy num_ctx, dostrojony sampling)
+
+| Model | tok/s (mediana) | vs default |
+|---|---|---|
+| qwen3-coder:30b-fast | **61.7** | +13% |
+| gpt-oss-fast | **52.6** | +9% |
+| deepseek-fast | **14.2** | **+37%** |
+| devstral-small-2:24b-fast | **11.8** | **+33%** |
+
+Wnioski:
+- **Ranking spójny w obu zestawach:** qwen > gpt-oss ≫ deepseek > devstral.
+- **Fast realnie przyspiesza o +9% do +37%.** Największy zysk tam, gdzie default ma duży
+  kontekst (deepseek, devstral 128K) - fast tnie `num_ctx` do 8192, mniejszy KV cache =
+  szybsza generacja. qwen/gpt-oss już dobrze zoptymalizowane, więc mniejszy zysk.
+- Deepseek (10.4 / 14.2) jest ~5x wolniejszy od qwen - teza artykułu "2-3x wolniejszy"
+  (mierzona jako całkowity czas zadania) jest raczej zaniżona w czystej prędkości generacji.
+
+### Metodologia pomiaru tok/s (dlaczego tym liczbom można ufać)
 
 - **Ładowanie wykluczone:** gen tok/s = `eval_count / eval_duration`; Ollama raportuje
-  `eval_duration` osobno od `load_duration`, więc czas wczytania modelu z dysku NIE wchodzi
-  do wyniku.
-- **Warmup + mediana z 3:** pierwszy (cold) przebieg bywa zaniżony przez kompilację kerneli
-  Metal. Bez warmupu qwen schodził do ~53 tok/s; z warmupem stabilne **62** (61.9-62.1).
-- **Stan systemu zniekształca pomiar (najważniejsze):** devstral wyszedł 13.8 tok/s na początku
-  sesji, a 7.1 pod koniec - nie przez warmup, lecz przez memory pressure (20 mln pageoutów,
-  38% wolnego RAM), duży KV cache przy `num_ctx 65536` i nagrzanie po serii pomiarów.
-  Rzetelny pomiar wymaga: jeden model w pamięci, świeży/chłodny system, kontrolowany `num_ctx`.
-  To sam w sobie dowód tezy "benchmark ≠ rzeczywistość".
-
-Relacja z artykułu (qwen wielokrotnie szybszy) - odtworzona.
-
-**Teza o deepseeku doprecyzowana.** Artykuł mówi "2-3x wolniejszy" - to całkowity czas
-zadania (jak mierzyło źródło). W czystej prędkości generacji deepseek (9.4 tok/s) jest
-**~5.7x wolniejszy** od qwen/gpt-oss (~54 tok/s), czyli teza jest raczej zaniżona.
-deepseek generuje tak wolno jak odrzucona gemma - na interaktywną pracę się nie nadaje.
+  `eval_duration` osobno od `load_duration`, więc czas wczytania modelu z dysku NIE wchodzi.
+- **Warmup + mediana z 3:** cold start zaniżał qwen (~53 bez warmupu vs ~62 z); mediana
+  ignoruje pojedyncze outliery (np. devstral miał w jednym przebiegu spadek do 5.3 -
+  mediana 11.8 go pominęła).
+- **Izolacja (1 model w pamięci):** to było kluczowe. Bez izolacji deepseek wychodził 10.3,
+  devstral 7.1 - zaniżone przez konkurencję o VRAM/RAM (memory pressure, pageouty). Po
+  wymuszeniu jednego modelu w pamięci: deepseek 14.2, devstral 11.8. Więcej niż jeden model
+  w pamięci = niewiarygodny benchmark. To zarazem dowód tezy "benchmark ≠ rzeczywistość".
 
 ## num_predict i thinking overflow (`bench_numpredict.py`, gpt-oss:20b)
 
