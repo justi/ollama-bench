@@ -25,28 +25,36 @@ def build_big_prompt():
 RUNS = 3  # liczba pomiarow per model PO warmupie; raportujemy mediane
 
 
+def _strip_latest(n):
+    return n[:-7] if n.endswith(":latest") else n
+
+
 def measure_model(model, prompt, num_predict, runs=RUNS):
     # Izolacja: wyladuj WSZYSTKIE inne modele, by w pamieci byl tylko mierzony.
     # Wiecej niz jeden model = konkurencja o VRAM/RAM = zanizone, niewiarygodne tok/s.
-    isolate(model)
+    iso_confirmed = isolate(model)  # True dopiero gdy /api/ps potwierdzi pustke
     # Warmup: jeden krotki przebieg, by zaladowac model i skompilowac kernele Metal.
     # Bez tego pierwszy pomiar bywa zanizony (cold start). Wynik warmupu odrzucamy.
-    # Uwaga: gen tok/s i tak liczymy z eval_duration, ktore NIE zawiera load_duration -
-    # czyli czas wczytania modelu z dysku nigdy nie wchodzi do tok/s.
+    # gen tok/s liczymy z eval_duration, ktore NIE zawiera load_duration (load z dysku poza tok/s).
     try:
         generate(model, "Czesc", num_predict=8)
     except Exception:
         pass
-    # Weryfikacja izolacji: po zaladowaniu w pamieci powinien byc DOKLADNIE mierzony model.
-    # loaded == None (blad odczytu /api/ps) albo inne modele -> izolacja niepewna (codex #1).
+    # Weryfikacja: po warmupie w pamieci ma byc DOKLADNIE mierzony model.
+    # Normalizacja :latest (grok #4): /api/ps zwraca np. 'deepseek-fast:latest'.
     loaded = list_loaded()
-    isolation_ok = loaded == [model]
-    rates, last = [], None
+    norm = None if loaded is None else [_strip_latest(x) for x in loaded]
+    isolation_ok = bool(iso_confirmed) and norm == [_strip_latest(model)]
+    rates, last, think_chars, resp_chars = [], None, 0, 0
     for _ in range(runs):
         last = generate(model, prompt, num_predict=num_predict)
         gr = gen_tok_s(last)
         if gr:
             rates.append(gr)
+        # grok #1: u modeli 'thinking' (gpt-oss) tresc idzie w pole thinking, a eval_count
+        # liczy tokeny MYSLENIA. gen_tok_s to wtedy przepustowosc kanalu thinking, nie outputu.
+        think_chars = len(last.get("thinking") or "")
+        resp_chars = len(last.get("response") or "")
     return {
         "model": model,
         "gen_tok_s": round(statistics.median(rates), 1) if rates else None,
@@ -56,6 +64,9 @@ def measure_model(model, prompt, num_predict, runs=RUNS):
         "gen_tokens": last.get("eval_count") if last else None,
         "isolated": isolation_ok,
         "loaded_during": loaded,
+        "is_thinking": think_chars > 0,
+        "response_chars": resp_chars,
+        "thinking_chars": think_chars,
     }
 
 
@@ -85,8 +96,12 @@ def main():
             continue
         rows.append(row)
         warn = "" if row.get("isolated") else f"  [!] IZOLACJA NARUSZONA (w pamieci: {row.get('loaded_during')})"
+        think = ""
+        if row.get("is_thinking"):
+            think = (f"  [!] THINKING: tok/s zawiera tokeny myslenia, nie tylko output "
+                     f"(response {row['response_chars']} zn / thinking {row['thinking_chars']} zn)")
         print(f"gen {row['gen_tok_s']} tok/s (mediana z {row['gen_tok_s_runs']}) | "
-              f"prompt {row['prompt_tok_s']} tok/s | total {row['total_s']} s{warn}")
+              f"prompt {row['prompt_tok_s']} tok/s | total {row['total_s']} s{warn}{think}")
 
     print("\n== PODSUMOWANIE (mediana gen tok/s) ==")
     print(f"{'model':<32} {'gen tok/s':>10} {'przebiegi':>24}")

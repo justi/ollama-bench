@@ -17,7 +17,7 @@
   "reasoning": [
     {
       "q": "Marek ma tyle samo braci co siostr. Jego siostra Ania ma dwa razy wiecej braci niz siostr. Ilu jest chlopcow, a ile dziewczynek w rodzinie? Podaj same liczby.",
-      "keys": ["\\b4\\b.*\\b3\\b", "czterech.*trzy", "4 chlop", "3 dziew"]
+      "keys": ["4 chlop", "chlop.{0,12}4", "4.{0,6}chlop", "czterech chlop", "4 boys", "boys.{0,8}4"]
     },
     {
       "q": "Na wyspie sa rycerze (zawsze mowia prawde) i lotrzy (zawsze klamia). Spotykasz osobe A, ktora mowi: 'Jestem lotrem'. Kim jest A? Wyjasnij krotko.",
@@ -29,8 +29,8 @@
     },
     {
       "q": "Monty Hall: sa 3 bramki, za jedna auto. Wybierasz bramke 1. Prowadzacy otwiera bramke 3 (pusta). Czy oplaca sie zmienic wybor na bramke 2? Podaj decyzje i prawdopodobienstwo.",
-      "keys": ["zmieni", "2/3", "66"],
-      "anti": ["nie zmienia.{0,25}prawdopodob", "rowne prawdopodob", "bez znaczenia", "nie ma znaczenia", "takie samo prawdopodob", "1/2"]
+      "keys": ["2/3", "66", "tak.{0,15}zmien", "warto zmien", "nalezy zmien"],
+      "anti": ["nie zmienia.{0,25}prawdopodob", "rowne prawdopodob", "bez znaczenia", "nie ma znaczenia", "takie samo prawdopodob", "1/2", "nie warto zmien", "zostan przy", "pozostan przy", "zostac przy", "nie zmieniaj"]
     },
     {
       "q": "Liczba 76 to kod ASCII ktorej wielkiej litery alfabetu lacinskiego? Podaj sama litere.",
@@ -78,7 +78,7 @@
       },
       {
         "prompt": "Znajdz blad w tym kodzie Python:\n\nfor x in lst:\n    if x < 0:\n        lst.remove(x)\n\nOpisz krotko, na czym polega blad.",
-        "keys": ["modyfik.{0,20}iter", "iter.{0,20}modyfik", "podczas iter", "w trakcie iter", "mutacj", "remove.{0,20}iter", "zmienia.{0,15}petl", "pomija", "usuw.{0,20}iter", "iterowan", "zmian.{0,20}list.{0,20}for", "modyfikac", "modyfikow"]
+        "keys": ["modyfik.{0,20}iter", "iter.{0,20}modyfik", "podczas iter", "w trakcie iter", "mutacj", "remove.{0,20}iter", "zmienia.{0,15}petl", "pomija", "usuw.{0,20}iter", "iterowan", "zmian.{0,20}list.{0,20}for", "modyfikac", "modyfikow", "while iterat", "during iterat", "skip.{0,12}element", "modif.{0,18}(during|while).{0,12}iterat", "modifying.{0,15}list", "remov.{0,18}(during|while)", "mutat.{0,15}iterat"]
       },
       {
         "prompt": "Znajdz blad lub co poprawic w tym kodzie Python:\n\ndef f(x):\n    if x == None:\n        return 0\n    return x * 2\n\nOpisz krotko.",

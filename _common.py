@@ -43,23 +43,29 @@ def unload(model):
 
 
 def isolate(target, poll_timeout=30):
-    """Gwarantuje, ze w pamieci nie ma INNYCH modeli niz mierzony - konkurencja o VRAM/RAM
-    zanizа tok/s i czyni pomiar niewiarygodnym. Wyladowuje wszystko i CZEKA, az pamiec
-    bedzie pusta (unload jest asynchroniczny - /api/ps chwile jeszcze pokazuje model;
-    codex finding #2)."""
+    """Wyladowuje wszystkie modele i CZEKA, az /api/ps potwierdzi pusta pamiec.
+    Zwraca True gdy potwierdzono pustke, False przy bledzie odczytu lub timeout.
+    Konkurencja o VRAM/RAM zanizа tok/s; bez tego pomiar jest niewiarygodny.
+
+    Wazne (grok #3/#5): blad odczytu /api/ps (None) NIE konczy oczekiwania jako sukces -
+    inaczej awaria API udawalaby oproniona pamiec. unload jest asynchroniczny, stad poll."""
     loaded = list_loaded()
     if loaded is None:
-        return  # nie udalo sie odczytac stanu - nie ruszamy na slepo
+        return False  # nie udalo sie odczytac stanu - nie ruszamy na slepo
     for m in loaded:
         unload(m)
-    # poll az pamiec pusta lub timeout
     waited = 0
     while waited < poll_timeout:
         cur = list_loaded()
-        if cur is None or len(cur) == 0:
-            break
+        if cur is None:
+            time.sleep(1)  # blad odczytu - probuj dalej, NIE traktuj jako pustka
+            waited += 1
+            continue
+        if len(cur) == 0:
+            return True
         time.sleep(1)
         waited += 1
+    return False  # timeout - pamiec wciaz niepusta
 
 
 def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_alive=None):
