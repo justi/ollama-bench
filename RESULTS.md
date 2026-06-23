@@ -4,6 +4,31 @@
 modeli (codex ×2 + grok, ~30 findings) - wszystkie krytyczne/ważne naprawione i zweryfikowane.
 Pomiary: izolacja (1 model w pamięci), warmup + mediana z 3.
 
+## ETAP 1 - FAIR: wszystkie modele @ temp 0.7 (model vs model)
+
+Porównanie przy JEDNEJ temperaturze - eliminuje różnice configu, pokazuje sam model. Patrz CONFIG.md.
+
+| Model | output tok/s | eval tok/s | reasoning (śr×3) | consistency | kod /8 |
+|---|---|---|---|---|---|
+| qwen-coder-t07 | **61.7** | 61.7 | 3.33 [2,4,4] | 2 | 8/8 |
+| gpt-oss-t07 | 38.1 | 53.9 | 4.33 [5,4,4] | 1 | 8/8 |
+| north-t07 | 28.7 | 38.5 | 5.0 [6,4,5] | 2 | 8/8 |
+| phi4-t07 | 10.9 | 10.9 | **5.0 [5,5,5]** | **0** | 8/8 |
+| qwen36-t07 | 8.5 | 38.0 | 4.67 [5,5,4] | 1 | **4/8** |
+| devstral-t07 | 8.1 | 8.1 | 5.0 [5,6,4] | 2 | 8/8 |
+
+Wnioski (przy RÓWNEJ temp 0.7):
+- **Kod: 5 z 6 modeli = 8/8.** Tylko qwen3.6 słaby (4/8) - i to NIE wina temperatury (temp 1 też
+  dawało 4/8). qwen3.6 (model OGÓLNY) jest gorszy na kodzie niż dedykowani koderzy. Potwierdzone fair.
+- **qwen3.6 reasoning naprawił się** z temp 1 (3.33) na temp 0.7 (4.67) - poprzedni wynik był niefair
+  przez za wysoką temperaturę. Fair temp pokazuje przyzwoity reasoning qwen3.6.
+- **phi4 najlepszy reasoning (5.0, zakres 0 = idealnie stabilny)** = devstral = north. qwen-coder
+  najsłabszy (3.33) - koder ma słaby reasoning z natury.
+- **Output: qwen-coder najszybszy (61.7).** qwen3.6 myśli ogromnie (3573 zn!) → output 8.5 mimo eval 38.
+- Najlepszy wszechstronny fair: north (28.7 + 5.0 + 8/8) albo qwen-coder (61.7 + 8/8, słaby reasoning).
+
+---
+
 ## Szybkość: output tok/s vs eval tok/s (zestaw fast)
 
 **Najważniejsze odkrycie audytu (grok #1):** dla modeli z trybem myślenia `eval_count` liczy
