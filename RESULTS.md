@@ -84,14 +84,14 @@ angielskie opisy bugu były odrzucane. deepseek-coder słaby na logice, ale na K
 gpt-oss energia liczona dla OUTPUT (15.1 tok/s) wzrosła z ~0.24 do 0.83 - bo na 1M widocznych
 tokenów generuje ~3.6× więcej (z myśleniem). To realny koszt thinking.
 
-## MACIERZ DECYZYJNA: output × reasoning × kod × energia (fast)
+## MACIERZ DECYZYJNA: output × reasoning × consistency × kod × energia (fast)
 
-| Model | output tok/s | reasoning /6 | kod /8 | energia kWh/1M |
-|---|---|---|---|---|
-| qwen-fast | **61.8** (1.) | 3/6 | 8/8 | **0.20** (1.) |
-| gpt-oss-fast | 15.1 (2.) | 5/6 | 8/8 | 0.83 (2.) |
-| deepseek-fast | 14.0 (3.) | (usunięty) | 7/8 | 0.89 (3.) |
-| devstral-fast | 12.4 (4.) | **6/6** | 8/8 | 1.01 (4.) |
+| Model | output tok/s | reasoning (śr.) | consistency | kod /8 | energia kWh/1M |
+|---|---|---|---|---|---|
+| qwen-fast | **61.8** (1.) | 3.67 | 2 (chaos) | 8/8 | **0.20** (1.) |
+| gpt-oss-fast | 15.1 (2.) | 5.0 | **0** (stabilny) | 8/8 | 0.83 (2.) |
+| deepseek-fast | 14.0 (3.) | (usunięty) | - | 7/8 | 0.89 (3.) |
+| devstral-fast | 12.4 (4.) | **6.0** | **0** (stabilny) | 8/8 | 1.01 (4.) |
 
 (reasoning po poprawionym graderze; ±1 szum przez nondeterminizm temp 0.7)
 
@@ -112,12 +112,17 @@ przepustowości, gpt-oss/devstral do jakości** - a thinking ma mierzalną cenę
 
 ## MACIERZ DECYZYJNA: zestaw DEFAULT (publiczne tagi)
 
-| Model | output tok/s | reasoning /6 | kod /8 | energia kWh/1M |
-|---|---|---|---|---|
-| qwen3-coder:30b | **57.1** (1.) | 3/6 | 8/8 | **0.22** (1.) |
-| gpt-oss:20b | 22.6 (2.) | **5/6** | 8/8 | 0.55 (2.) |
-| deepseek-coder:33b | 14.4 (3.) | 2/6 | 8/8 | 0.87 (3.) |
-| devstral:24b | 11.4 (4.) | **5/6** | 7/8 | 1.10 (4.) |
+| Model | output tok/s | reasoning (śr.) | consistency | kod /8 | energia kWh/1M |
+|---|---|---|---|---|---|
+| qwen3-coder:30b | **57.1** (1.) | 4.67 | 1 | 8/8 | **0.22** (1.) |
+| gpt-oss:20b | 22.6 (2.) | 4.67 | 1 | 8/8 | 0.55 (2.) |
+| deepseek-coder:33b | 14.4 (3.) | 2/6* | n/d | 8/8 | 0.87 (3.) |
+| devstral:24b | 11.4 (4.) | 5/6* | n/d | 7/8 | 1.10 (4.) |
+
+(* 1 przebieg - model usunięty dla miejsca, consistency niemierzona. UWAGA: qwen "fast" i
+"default" mają IDENTYCZNY sampling - temp 0.7, top_k 20, top_p 0.8, repeat 1.05 (jedyna różnica:
+num_ctx; patrz Modelfile.qwen-fast). Różnica reasoning 3.67 vs 4.67 to NIE efekt wariantu, tylko
+NONDETERMINIZM tego samego modelu - dwie próbki z tego samego rozkładu, w granicach szumu ±1.)
 
 Obraz spójny z fast - qwen dominuje wydajność, gpt-oss/devstral wygrywają jakością.
 Różnice fast vs default:
@@ -130,11 +135,11 @@ Różnice fast vs default:
 
 ## MACIERZ: NOWE MODELE 2026 (dograne na życzenie)
 
-| Model | output tok/s | reasoning /6 | kod /8 | energia kWh/1M |
-|---|---|---|---|---|
-| north-mini-code-1.0 | **43.6** | 5/6 | 8/8 | **0.29** |
-| phi4:14b | 12.0 | **6/6** | 8/8 | 1.04 |
-| deepseek-r1-8k | ~1.5 | 5/6 | 4/8 | 8.33 |
+| Model | output tok/s | reasoning (śr.) | consistency | kod /8 | energia kWh/1M |
+|---|---|---|---|---|---|
+| north-mini-code-1.0 | **43.6** | 4.67 | 1 | 8/8 | **0.29** |
+| phi4:14b | 12.0 | 4.33 | 1 | 8/8 | 1.04 |
+| deepseek-r1-8k | ~1.5 | 4.67 | 1 | 4/8 | 8.33 |
 
 (reasoning po RĘCZNEJ weryfikacji + naprawie gradera: auto-grade zaniżał, bo nie rozumiał
 LaTeX `\frac{2}{3}` ani polskich znaków `chłop` vs klucz `chlop`. r1 auto 3/6 -> realnie 5/6;
