@@ -37,6 +37,29 @@ przebiegami, który przykrywa efekt gradera. Wniosek: reasoning auto-grade to pr
 szumem ±1; rzetelnie wymaga uśrednienia wielu przebiegów + human eval (meta-teza znów).
 deepseek i devstral:24b default usunięto dla miejsca - ich reasoning nie był re-mierzony.
 
+## Reasoning: ŚREDNIA + CONSISTENCY (`--runs 3`)
+
+Pojedynczy przebieg ma szum ±1 (temp 0.7). Trzy przebiegi dają średnią (prawdziwsza umiejętność)
+i ZAKRES (consistency - przewidywalność modelu).
+
+| Model | przebiegi | średnia /6 | zakres (consistency) |
+|---|---|---|---|
+| devstral-small-2:24b-fast | [6,6,6] | **6.0** | **0** (idealnie stabilny) |
+| gpt-oss-fast | [5,5,5] | 5.0 | **0** (idealnie stabilny) |
+| north-mini-code-1.0 | [4,5,5] | 4.67 | 1 |
+| phi4:14b | [5,4,4] | 4.33 | 1 |
+| qwen3-coder:30b-fast | [3,5,3] | 3.67 | 2 (chaotyczny) |
+| deepseek-r1-8k | (1 przebieg, 5/6) | ~5 | niemierzone (za wolny na N) |
+
+Tryb N PRZEMEBLOWAŁ ranking - dowód wartości:
+- **phi4 "6/6" było szczęśliwym strzałem** - realnie 4.33 (waha 4-5). Pojedynczy przebieg wpisałby
+  do macierzy fałszywego lidera reasoning.
+- **devstral to prawdziwy lider reasoning: 6.0 I idealnie stabilny.** Najlepsza średnia + zerowy
+  rozrzut = model, na którym można polegać.
+- **consistency to niezależny sygnał:** qwen podwójnie słaby (niska średnia 3.7 + największy
+  rozrzut 2 = loteria); devstral/gpt-oss podwójnie dobre (wysokie + stabilne). Sama średnia tego
+  nie pokaże - chaotyczny model jest gorszy do produkcji niż przewidywalny o tej samej średniej.
+
 ## Kod = generacja (auto-test) + bug finding
 
 | Model | fast | default |
