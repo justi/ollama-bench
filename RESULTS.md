@@ -27,6 +27,37 @@ Wnioski (przy RÓWNEJ temp 0.7):
 - **Output: qwen-coder najszybszy (61.7).** qwen3.6 myśli ogromnie (3573 zn!) → output 8.5 mimo eval 38.
 - Najlepszy wszechstronny fair: north (28.7 + 5.0 + 8/8) albo qwen-coder (61.7 + 8/8, słaby reasoning).
 
+## ETAP 2 - BEST PARAMS PER MODEL (tylko jakość: kod + reasoning)
+
+Każdy model w najlepszej formie (gpt-oss temp 0.3+np3000, qwen3.6 temp 0.3+top_p0.9, reszta natywna).
+Bez osi zależnych od configu (speed/energia).
+
+| Model | reasoning (śr×3) | consistency | kod /8 |
+|---|---|---|---|
+| devstral (natywny) | **5.33** [6,5,5] | 1 | 8/8 |
+| gpt-oss-best (t0.3+np3000) | 4.67 [5,5,4] | 1 | 8/8 |
+| north (natywny) | 4.33 [4,5,4] | 1 | 8/8 |
+| qwen36-best (t0.3+topp0.9) | 4.0 [4,3,5] | 2 | **5/8 (gen 2/5)** |
+| qwen-coder (natywny) | 3.67 [3,4,4] | 1 | 8/8 |
+| phi4 (natywny) | 3.33 [2,6,2] | **4 (chaos!)** | 8/8 |
+
+### KONKLUZJA obu etapów
+
+1. **Jakość KODU to stabilna cecha MODELU, niezależna od parametrów.** 5 modeli (qwen-coder, gpt-oss,
+   devstral, north, phi4) dają 8/8 w KAŻDYM configu. qwen3.6 daje generację 2/5 w KAŻDYM configu
+   (temp 1, 0.7, 0.3) - best params podniosły tylko bug-finding, nie pisanie kodu. To MODEL ogólny
+   vs koderzy, nie kwestia temperatury.
+
+2. **"Best params" bywa mitem.** phi4 @ natywnej temp wyszedł GORSZY i chaotyczny (3.33, [2,6,2],
+   zakres 4) niż @ wymuszonej 0.7 (5.0, [5,5,5], zakres 0). "Zostaw natywne" nie zawsze wygrywa.
+
+3. **Reasoning jest zaszumiony (±1-2); parametry nie dają pewnej poprawy.** qwen3.6 temp 0.7 (4.67) >
+   temp 0.3 (4.0) na reasoning - mimo że temp 0.3 to ustalenie usera dla TOOL CALLING (inny cel).
+   devstral lekko najlepszy reasoning (5.33) w obu etapach.
+
+4. **Praktyczny wybór niezmienny po obu etapach:** do KODU dowolny z piątki (qwen-coder najszybszy,
+   north najlepszy kompromis); qwen3.6 NIE do kodu (jego siła to polski/pipeline, nie mierzone tu).
+
 ---
 
 ## Szybkość: output tok/s vs eval tok/s (zestaw fast)
