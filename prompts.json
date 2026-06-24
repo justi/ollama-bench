@@ -74,6 +74,38 @@
         "tests": [[["hello"], 2], [["HELLO"], 2], [["xyz"], 0], [["AEIOU"], 5]]
       }
     ],
+    "generate_hard": [
+      {
+        "func": "longest_substring",
+        "prompt": "Napisz funkcje Python longest_substring(s) zwracajaca DLUGOSC najdluzszego podlancucha bez powtarzajacych sie znakow (sliding window). Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["abcabcbb"], 3], [["pwwkew"], 3], [["tmmzuxt"], 5], [["bbbbb"], 1], [[""], 0], [["dvdf"], 3]]
+      },
+      {
+        "func": "largest_rectangle",
+        "prompt": "Napisz funkcje Python largest_rectangle(heights) zwracajaca POLE najwiekszego prostokata w histogramie slupkow o wysokosciach heights (lista int). Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[2,1,5,6,2,3]], 10], [[[2,4]], 4], [[[1,1]], 2], [[[5]], 5], [[[6,2,5,4,5,1,6]], 12]]
+      },
+      {
+        "func": "edit_distance",
+        "prompt": "Napisz funkcje Python edit_distance(a, b) zwracajaca odleglosc Levenshteina (min. operacji wstaw/usun/zamien) miedzy a i b. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["horse","ros"], 3], [["intention","execution"], 5], [["","abc"], 3], [["abc","abc"], 0], [["sunday","saturday"], 3]]
+      },
+      {
+        "func": "coin_change",
+        "prompt": "Napisz funkcje Python coin_change(coins, amount) zwracajaca min. liczbe monet (z listy coins, kazda wielokrotnie) sumujacych sie do amount, lub -1 jesli niemozliwe. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[1,2,5],11], 3], [[[2],3], -1], [[[1],0], 0], [[[1,2,5],5], 1], [[[2,5,10,1],27], 4]]
+      },
+      {
+        "func": "trap_water",
+        "prompt": "Napisz funkcje Python trap_water(height) zwracajaca ilosc wody uwiezionej miedzy slupkami o wysokosciach height (lista int) po deszczu. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[0,1,0,2,1,0,1,3,2,1,2,1]], 6], [[[4,2,0,3,2,5]], 9], [[[1,1]], 0], [[[5,4,1,2]], 1]]
+      },
+      {
+        "func": "word_break",
+        "prompt": "Napisz funkcje Python word_break(s, words) zwracajaca True jesli lancuch s da sie w calosci podzielic na slowa z listy words (kazde wielokrotnie). Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["leetcode",["leet","code"]], true], [["catsandog",["cats","dog","sand","and","cat"]], false], [["applepenapple",["apple","pen"]], true], [["aaaaaaa",["aaaa","aaa"]], true]]
+      }
+    ],
     "bugfind": [
       {
         "prompt": "Znajdz blad w tym kodzie Python:\n\nfor i in range(len(arr)):\n    print(arr[i+1])\n\nOpisz krotko, na czym polega blad.",

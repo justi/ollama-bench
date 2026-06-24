@@ -82,13 +82,15 @@ def grade_bug(answer, keys):
 def main():
     args = sys.argv[1:]
     no_think = "--no-think" in args  # wylacza thinking u thinking-modeli (qwen3.6, gpt-oss)
+    hard = "--hard" in args  # trudne algorytmy (sliding window, histogram, DP) - rozrozniaja modele
     think = False if no_think else None
-    models = [a for a in args if a != "--no-think"]
+    models = [a for a in args if a not in ("--no-think", "--hard")]
     if not models:
-        print("Uzycie: python3 bench_coding.py [--no-think] MODEL [MODEL ...]")
+        print("Uzycie: python3 bench_coding.py [--no-think] [--hard] MODEL [MODEL ...]")
         sys.exit(1)
     C = load_prompts()["coding"]
-    gen_tasks, bug_tasks = C["generate"], C["bugfind"]
+    gen_tasks = C["generate_hard"] if hard else C["generate"]
+    bug_tasks = C["bugfind"]
     total = len(gen_tasks) + len(bug_tasks)
 
     results = {}
