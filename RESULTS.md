@@ -41,6 +41,33 @@ Bez osi zależnych od configu (speed/energia).
 | qwen-coder (natywny) | 3.67 [3,4,4] | 1 | 8/8 |
 | phi4 (natywny) | 3.33 [2,6,2] | **4 (chaos!)** | 8/8 |
 
+## TABELA: thinking-modele z NO-THINK (think=False / --no-think)
+
+WAŻNE: dla gpt-oss think=False jest IGNOROWANY (harmony hardcoded - tylko reasoning_effort
+low/medium/high, nie zero; ollama issue #11751). Prawdziwy no-think tylko qwen36 i north.
+
+| Model | output tok/s | reasoning (śr×3) | consistency | kod /8 | energia kWh/1M | thinking off? |
+|---|---|---|---|---|---|---|
+| north-mini-code-1.0 | **64.7** | 3.67 [5,3,3] | 2 | 8/8 | 0.19 | TAK |
+| qwen36-unsloth | ~47 (eval; bug 400 w speed) | 3.33 [3,3,4] | 1 | 8/8 | ~0.27 | TAK |
+| gpt-oss:20b | 15-22 | 4.0 [4,4,4] | 0 | 8/8 | ~0.7 | NIE (ignoruje think=False) |
+
+Thinking ON vs OFF (north, qwen36 - gdzie no-think działa):
+
+| Model | output ON→OFF | reasoning ON→OFF | kod ON→OFF |
+|---|---|---|---|
+| north | 28.7 → **64.7** (2.3x szybciej) | 5.0 → 3.67 (gorzej) | 8/8 → 8/8 |
+| qwen36 | ~17 → ~47 (2.8x) | ~4 → 3.33 (gorzej/szum) | **4/8 → 8/8 (naprawione)** |
+
+Wnioski:
+- **Thinking OFF = dużo szybciej** (north 2.3x, brak eksplozji myślenia) + **naprawiony kod**
+  (qwen3.6 4→8 - kod nie ginie w thinking). **ALE gorszy reasoning** (north 5.0→3.67 - thinking
+  realnie pomaga logice). Trade-off: thinking do reasoningu, no-think do kodu i szybkości.
+- **gpt-oss: thinkingu NIE da się wyłączyć** (hardcoded w training; think=False ignorowany).
+  Tylko minimalizacja przez reasoning_effort="low". To ograniczenie Ollama+gpt-oss, nie benchmarku.
+- Runtime: dla wiernego sterowania thinkingiem (zwł. gpt-oss) trzeba llama.cpp llama-server z
+  jinja `chat_template_kwargs.enable_thinking` - Ollama tego nie odwzorowuje spójnie. (do zrobienia)
+
 ### KOREKTA (po teście z thinking OFF - wkład usera, config z forum)
 
 **Wniosek "qwen3.6 słaby kod = model" BYŁ BŁĘDNY - to był THINKING, nie model.**
