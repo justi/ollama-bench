@@ -124,9 +124,15 @@ def main():
         think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
     else:
         think = False if no_think else None
+    # --num-predict=N: budzet tokenow generacji. Domyslnie 1500, ale gadatliwe modele (duzo
+    # komentarzy) ucinaja sie na tym i kod nie parsuje (SyntaxError = false negative, NIE
+    # slabosc modelu). Zmierzone: unsloth-q4xl done_reason=length przy 1500. Wyzszy budzet =
+    # uczciwiej dla gadatliwych; modele konczace sie naturalnie (done=stop) nie zmieniaja wyniku.
+    np_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--num-predict=")), None)
+    gen_np = int(np_arg) if np_arg else 1500
     models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Uzycie: python3 bench_coding.py [--no-think] [--hard|--expert] MODEL [MODEL ...]")
+        print("Uzycie: python3 bench_coding.py [--no-think] [--hard|--expert] [--num-predict=N] MODEL [...]")
         sys.exit(1)
     C = load_prompts()["coding"]
     gen_tasks = C["generate_expert"] if expert else (C["generate_hard"] if hard else C["generate"])
@@ -139,15 +145,21 @@ def main():
         gen_pass, details = 0, []
         print("  [generacja kodu - auto-test]")
         for t in gen_tasks:
+            trunc = False
             try:
-                r = generate(m, t["prompt"], num_predict=1500, think=think)
+                r = generate(m, t["prompt"], num_predict=gen_np, think=think)
+                # done_reason=='length' = odpowiedz ucieta budzetem (false negative ryzyko)
+                trunc = r.get("done_reason") == "length"
                 code = extract_code(r.get("response") or "")
                 ok, msg = run_generated(code, t["func"], t["tests"])
             except Exception as e:
                 ok, msg = False, f"blad: {e}"
+            if not ok and trunc:
+                msg = f"[UCIETE num_predict={gen_np}] {msg}"
             gen_pass += 1 if ok else 0
-            print(f"    {t['func']:<18} {'OK ' if ok else 'NIE'}  {('' if ok else msg)[:60]}")
-            details.append({"task": t["func"], "ok": ok, "msg": msg})
+            flag = "OK " if ok else ("TR!" if trunc else "NIE")
+            print(f"    {t['func']:<18} {flag}  {('' if ok else msg)[:60]}")
+            details.append({"task": t["func"], "ok": ok, "trunc": trunc, "msg": msg})
         bug_pass = 0
         print("  [bug finding]")
         for i, t in enumerate(bug_tasks, 1):

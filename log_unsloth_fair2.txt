@@ -1,22 +1,22 @@
 
 == unsloth-q4xl-best ==
   [generacja kodu - auto-test]
-    parse_csv_line     OK   
-    apply_payments     OK   
+    parse_csv_line     NIE  parse_csv_line([' "a",b'])=[' a', 'b'], oczek [' "a"', 'b']
+    apply_payments     NIE  apply_payments([[100, 200], [150]])=([0, 50], [0]), oczek [[
     coalesce_spans     OK   
     fraction_pipeline  OK   
-    tokenize_query     NIE  runtime TypeError na ['age >= 18 and country not in (1,2)']
+    tokenize_query     NIE  tokenize_query(['age >= 18 and country not in (1,2)'])=[('ID
     stale_targets      NIE  stale_targets([{'x': ['missing.h'], 'y': ['x']}, ['missing.h
-    bankers_cents      OK   
+    bankers_cents      NIE  runtime ValueError na ['12.a']
     merge_events       OK   
     normalize_cidr     OK   
   [bug finding]
     bug 1              OK 
     bug 2              OK 
     bug 3              OK 
-  SCORE: 10/12  (kod 7/9, bugi 3/3)
+  SCORE: 7/12  (kod 4/9, bugi 3/3)
 
 == PODSUMOWANIE (jakosc kodowa) ==
-  unsloth-q4xl-best              10/12  (kod 7/9, bugi 3/3)
+  unsloth-q4xl-best              7/12  (kod 4/9, bugi 3/3)
 
 Zapisano: results_coding.json

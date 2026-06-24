@@ -1,0 +1,22 @@
+
+== unsloth-q4xl-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     NIE  timeout 5s na [''] (petla w kodzie modelu)
+    apply_payments     OK   
+    coalesce_spans     OK   
+    fraction_pipeline  OK   
+    tokenize_query     TR!  [UCIETE num_predict=3000] exec error: SyntaxError: invalid s
+    stale_targets      NIE  stale_targets([{'a': ['b'], 'b': ['src.c'], 'c': ['src.c']},
+    bankers_cents      NIE  bankers_cents(['12.345'])=34, oczek 1234
+    merge_events       OK   
+    normalize_cidr     OK   
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              OK 
+  SCORE: 8/12  (kod 5/9, bugi 3/3)
+
+== PODSUMOWANIE (jakosc kodowa) ==
+  unsloth-q4xl-best              8/12  (kod 5/9, bugi 3/3)
+
+Zapisano: results_coding.json

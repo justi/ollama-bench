@@ -1,0 +1,106 @@
+<unknown>:87: SyntaxWarning: invalid escape sequence '\('
+<unknown>:88: SyntaxWarning: invalid escape sequence '\)'
+<unknown>:92: SyntaxWarning: invalid escape sequence '\d'
+<unknown>:93: SyntaxWarning: invalid escape sequence '\w'
+<string>:87: SyntaxWarning: invalid escape sequence '\('
+<string>:88: SyntaxWarning: invalid escape sequence '\)'
+<string>:92: SyntaxWarning: invalid escape sequence '\d'
+<string>:93: SyntaxWarning: invalid escape sequence '\w'
+
+== qwen-coder-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     NIE  parse_csv_line([''])=[], oczek ['']
+    apply_payments     NIE  apply_payments([[0, 100, 0, 50], [30, 80]])=([0, 40, 0, 0], 
+    coalesce_spans     OK   
+    fraction_pipeline  OK   
+    tokenize_query     NIE  tokenize_query(['age >= 18 and country not in (1,2)'])=[('NA
+    stale_targets      NIE  stale_targets([{'app': ['lib', 'main.c'], 'lib': ['util.c'],
+    bankers_cents      NIE  bankers_cents(['0.0051'])=0, oczek 1
+    merge_events       OK   
+    normalize_cidr     OK   
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              NIE
+  SCORE: 6/12  (kod 4/9, bugi 2/3)
+
+== phi4-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     NIE  parse_csv_line([''])=[], oczek ['']
+    apply_payments     OK   
+    coalesce_spans     OK   
+    fraction_pipeline  OK   
+    tokenize_query     NIE  tokenize_query(['age >= 18 and country not in (1,2)'])=[('NA
+    stale_targets      NIE  stale_targets([{'app': ['lib', 'main.c'], 'lib': ['util.c'],
+None
+None
+1234
+1235
+    bankers_cents      NIE  bankers_cents(['12.345'])=None, oczek 1234
+    merge_events       OK   
+    normalize_cidr     OK   
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              OK 
+  SCORE: 8/12  (kod 5/9, bugi 3/3)
+
+== north-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     NIE  timeout 5s na ['a,,b,'] (petla w kodzie modelu)
+    apply_payments     OK   
+    coalesce_spans     OK   
+    fraction_pipeline  OK   
+    tokenize_query     NIE  tokenize_query(['age >= 18 and country not in (1,2)'])=[('ID
+    stale_targets      NIE  runtime UnboundLocalError na [{'app': ['lib', 'main.c'], 'li
+    bankers_cents      NIE  bankers_cents(['12.345'])=12, oczek 1234
+    merge_events       NIE  runtime NameError na [[[[1, 'a'], [3, 'c']], [[2, 'b'], [4, 
+    normalize_cidr     OK   
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              OK 
+  SCORE: 7/12  (kod 4/9, bugi 3/3)
+
+== qwen36-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     NIE  parse_csv_line([''])=[], oczek ['']
+    apply_payments     OK   
+    coalesce_spans     OK   
+    fraction_pipeline  OK   
+    tokenize_query     NIE  tokenize_query(['age >= 18 and country not in (1,2)'])=[('NO
+    stale_targets      OK   
+    bankers_cents      OK   
+    merge_events       OK   
+    normalize_cidr     OK   
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              OK 
+  SCORE: 10/12  (kod 7/9, bugi 3/3)
+
+== unsloth-q4xl-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     OK   
+    apply_payments     OK   
+    coalesce_spans     OK   
+    fraction_pipeline  OK   
+    tokenize_query     NIE  tokenize_query(['age >= 18 and country not in (1,2)'])=[('ID
+    stale_targets      OK   
+    bankers_cents      NIE  runtime ValueError na ['12.a']
+    merge_events       OK   
+    normalize_cidr     OK   
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              OK 
+  SCORE: 10/12  (kod 7/9, bugi 3/3)
+
+== PODSUMOWANIE (jakosc kodowa) ==
+  qwen-coder-best                6/12  (kod 4/9, bugi 2/3)
+  phi4-best                      8/12  (kod 5/9, bugi 3/3)
+  north-best                     7/12  (kod 4/9, bugi 3/3)
+  qwen36-best                    10/12  (kod 7/9, bugi 3/3)
+  unsloth-q4xl-best              10/12  (kod 7/9, bugi 3/3)
+
+Zapisano: results_coding.json

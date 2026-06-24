@@ -4,43 +4,52 @@
 modeli (codex ×2 + grok, ~30 findings) - wszystkie krytyczne/ważne naprawione i zweryfikowane.
 Pomiary: izolacja (1 model w pamięci), warmup + mediana z 3.
 
-## KOD EXPERT (9 zadań codex) - FAIR RE-TEST na best configach (2026-06-24)
+## KOD EXPERT (9 zadań codex) - RZETELNY RE-TEST n=3 na best configach (2026-06-24)
 
 Dziewięć nietrywialnych zadań od codex (CSV, FIFO, scalanie przedziałów, ułamki, tokenizer,
 mini-make/propagacja zmian, bankers rounding, stable merge, CIDR). Testy zweryfikowane
-referencyjnymi rozwiązaniami (sanity-check). Configi przeszły review grok+codex przed testem.
+referencyjnymi rozwiązaniami. Configi przeszły review grok+codex przed testem.
 
-Każdy model na SWOIM best configu (`configs/*.best.Modelfile`) + poprawne sterowanie thinking
-per model: qwen36/north `--think=false`, gpt-oss `--think=low` (harmony - nie da się wyłączyć),
-qwen-coder/phi4/devstral bez thinking. To eliminuje błąd wcześniejszego testu (mixed configs).
+Setup: każdy model na SWOIM best configu + poprawne sterowanie thinking (qwen36/north
+`--think=false`, gpt-oss `--think=low`, qwen-coder/phi4/devstral bez thinking) + fair
+`num_predict=3000` (patrz niżej) + **n=3, mediana + zakres** (jak consistency reasoningu).
 
-| Model | kod expert /9 | think | uwaga |
-|---|---|---|---|
-| **qwen3.6-best (no-think)** | **6/9** | `--think=false` | najlepszy koder trudnych zadań |
-| qwen-coder-best | 5/9 | brak (nie-thinking) | dedykowany koder |
-| gpt-oss-best | 5/9 | `--think=low` | było 4/9 z domyślnym high |
-| phi4-best | 4/9 | brak | mały (9 GB), efektywny |
-| devstral-best | 4/9 | brak | najlepszy reasoning (5.33) |
-| north-best (no-think) | 4/9 | `--think=false` | **było 1/9 z thinking ON!** |
-| deepseek-r1-best (no-think) | 4/9 | `--think=false` | usunięty - najwolniejszy, bez wygrywającej osi |
+| Model | przebiegi kod /9 | **mediana** | zakres | stabilność |
+|---|---|---|---|---|
+| **qwen3.6-best** (no-think) | 6,6,7 | **6** | 6-7 | dobra |
+| **unsloth-q4xl-best** (3.5 Q4_K_XL) | 6,5,7 | **6** | 5-7 | średnia |
+| **gpt-oss-best** (`--think=low`) | 6,4,7 | **6** | 4-7 | słaba (szum 3) |
+| qwen-coder-best (nie-thinking) | 5,5,4 | **5** | 4-5 | dobra |
+| north-best (no-think) | 3,4,4 | **4** | 3-4 | dobra |
+| devstral-best (nie-thinking) | 4,4,4 | **4** | 4-4 | idealna |
+| phi4-best (nie-thinking) | 2,3,5 | **3** | 2-5 | najgorsza (szum 3) |
 
-KOREKTA WŁASNEGO WCZEŚNIEJSZEGO WNIOSKU ("mierz, nie zakładaj" zastosowane do nas samych):
-- Wcześniejszy "ranking ODWRÓCONY" gdzie **north = 1/9 (najgorszy)** był ARTEFAKTEM thinking ON
-  na mixed configach. Na fair best configu z `--think=false`: **north = 4/9** (środek stawki).
-  To DOKŁADNIE ten sam błąd, który wykryliśmy u qwen3.6 (4/8→6/9) - thinking ON psuje kod u
-  CAŁEJ rodziny Qwen-distill (qwen3.6, north, deepseek-r1), nie tylko u jednego modelu.
-- **qwen3.6 (no-think) potwierdzony jako najlepszy koder trudnych zadań (6/9)** - bije nawet
-  dedykowanego qwen-coder. Wniosek stabilny po fair re-teście.
-- gpt-oss: `--think=low` zamiast domyślnego `high` podniósł kod 4→5/9 - poziom thinking ma
-  znaczenie nawet gdy nie da się go wyłączyć.
-- Które zadania sortują: parse_csv pada u wszystkich (nie sortuje); tokenize_query/stale_targets
-  najtrudniejsze; reszta oddziela słabszych od mocnych.
+(deepseek-r1 usunięty przed n=3: najwolniejszy ~4 tok/s + dno 4/9 + bez wygrywającej osi.)
 
-WNIOSEK: na osi POPRAWNOŚCI kodu trudnego ranking jest płaski (4-6/9), prawdziwym różnicowaniem
-jest qwen3.6 (6) > qwen-coder=gpt-oss (5) > reszta (4). "Odwrócenie" z north na dnie NIE było
-realne - to był nasz własny błąd konfiguracji (thinking ON). Lekcja podwójna: nie tylko dobór
-zadań, ale i KONFIGURACJA modelu potrafi całkowicie zmyć ranking. Sam benchmark trzeba
-audytować tak samo krytycznie jak mierzone modele.
+ODKRYCIE 1 - num_predict=1500 zaniżał gadatliwe modele (false-negative przez ucięcie):
+- Pierwotny benchmark hardcodował `num_predict=1500`. Dla zwięzłych modeli OK (kończą się
+  naturalnie, `done_reason=stop` poniżej budżetu), ale unsloth jest gadatliwy (3500-6000 znaków,
+  komentarze po polsku) i bił w sufit: `done_reason=length`, `eval_count=1500`, kod ucięty w
+  połowie → SyntaxError = OBLANY, choć model był poprawny. Zmierzone (n=3 per task): stale_targets
+  ucinane 2/3, bankers_cents 1/3.
+- Skutek: unsloth dostał 3/9 (zaniżone), prawdziwa jakość przy fair 3000 = **6/9** (różnica 2 pkt).
+- Naprawa: `--num-predict=N` + detekcja ucięcia (`done_reason=length` → flaga `TR!` + `[UCIETE]`).
+  Po fair re-teście: zero ucięć u WSZYSTKICH modeli (`TR!`=0). Lekcja: równy budżet ≠ równa
+  szansa; trzeba mierzyć `done_reason`, nie zakładać że limit nie wiąże.
+
+ODKRYCIE 2 - ranking n=1 był MYLĄCY (szum losowania ±1-3 na zadaniach expert):
+- Ten sam model swingował o 2-3 punkty między przebiegami (phi4: 2→3→5, gpt-oss: 6→4→7).
+  Przy n=1 phi4 mógł wypaść 2 albo 5, gpt-oss 4 albo 7 - czysta loteria.
+- Wcześniejszy n=1 ("qwen36 6 > qwen-coder=gpt-oss 5 > reszta 4") był BŁĘDNY w 3/7 pozycji:
+  gpt-oss zaniżony (n=1: 5, mediana: 6), unsloth błędnie 3 (ucięcie, mediana: 6), phi4 niestabilny.
+- Rzetelny obraz n=3: SZCZYT to TRÓJKA remisowa (mediana 6): **qwen3.6 = unsloth = gpt-oss**.
+  Potem qwen-coder (5), north=devstral (4), phi4 (3). devstral najprzewidywalniejszy (4/4/4).
+
+WNIOSEK: na osi poprawności kodu trudnego top jest remisowy (mediana 6: qwen3.6/unsloth/gpt-oss),
+a różnice 1-punktowe niżej są w granicach szumu. Hyped unsloth quant (3.5 Q4_K_XL) DORÓWNUJE
+Ollama 3.6 - ani lepszy, ani gorszy. Potrójna lekcja "mierz, nie zakładaj": (1) dobór zadań,
+(2) konfiguracja modelu (thinking), (3) parametry benchmarku (num_predict) i liczba prób (n)
+potrafią każda z osobna całkowicie zmyć ranking. Sam benchmark trzeba audytować jak mierzony obiekt.
 
 ## KOD STANDARDOWY nie rozróżnia topów (łatwe i hard - wszyscy max)
 
