@@ -4,6 +4,32 @@
 modeli (codex ×2 + grok, ~30 findings) - wszystkie krytyczne/ważne naprawione i zweryfikowane.
 Pomiary: izolacja (1 model w pamięci), warmup + mediana z 3.
 
+## TABELA MASTER - wszystkie modele, wszystkie osie (z prądem i czasem)
+
+Sortowanie po szybkości. Prąd/czas liczone dla OUTPUT tokenów (widoczna odpowiedź, nie thinking).
+
+| Model | output tok/s | czas h/1M | prąd kWh/1M | reasoning /6 | consist. | kod /8 |
+|---|---|---|---|---|---|---|
+| north-mini-code | 64.7* | 4.3 | **0.19** | 5.0 / 3.67* | 2 | 8/8 |
+| qwen3-coder | 61.8 | 4.5 | 0.20 | 3.67 | 2 | 8/8 |
+| qwen3.6 | 47* | 5.9 | 0.27 | 4.67 / 3.33* | 1 | 8/8* |
+| gpt-oss | 22.6 | 12.3 | 0.55 | 5.0 | 0 | 8/8 |
+| devstral | 12.4 | 22.4 | 1.01 | 5.33 | 1 | 8/8 |
+| phi4 | 12.0 | 23.1 | 1.04 | 5.0 | 0 | 8/8 |
+| deepseek-r1 | 4.0* | 69.4 | **3.13** | 5/6 / 4.33* | 1 | 8/8* |
+
+Legenda: output = widoczne tok/s · czas h/1M = godzin na 1M output-tokenów · prąd kWh/1M przy
+~45 W (pomnóż przez swoją cenę kWh dla zł) · reasoning = średnia ×3 (thinking pomaga) ·
+consist = zakres (0 = przewidywalny) · kod /8 · `*` = z no-think.
+
+Kluczowe z prądu/czasu:
+- **16× rozpiętość zużycia prądu**: north 0.19 kWh/1M -> deepseek-r1 3.13 (4 tok/s = 69 h/1M!).
+- **Energia jest odwrotnie proporcjonalna do szybkości** - wolny model zżera ~16× więcej prądu
+  na ten sam output, nie tylko każe czekać.
+- `*` u qwen3.6/r1: kod 8/8 TYLKO z no-think (z thinking 4/8); reasoning wtedy spada (trade-off).
+
+---
+
 ## ETAP 1 - FAIR: wszystkie modele @ temp 0.7 (model vs model)
 
 Porównanie przy JEDNEJ temperaturze - eliminuje różnice configu, pokazuje sam model. Patrz CONFIG.md.
