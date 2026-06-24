@@ -4,7 +4,33 @@
 modeli (codex ×2 + grok, ~30 findings) - wszystkie krytyczne/ważne naprawione i zweryfikowane.
 Pomiary: izolacja (1 model w pamięci), warmup + mediana z 3.
 
-## KOD nie rozróżnia topów (ważne ograniczenie benchmarku)
+## KOD EXPERT (3 zadania codex - nietrywialne, WRESZCIE rozróżniają)
+
+Trzy zadania od codex ze ścisłą specyfikacją + edge cases (parser CSV, FIFO płatności, scalanie
+przedziałów). Żaden model nie ma kompletu - i north/phi4 są wyraźnie słabsze.
+
+| Model | kod expert /3 | uwaga |
+|---|---|---|
+| qwen3-coder | 2/3 | tylko parse_csv padł |
+| gpt-oss | 2/3 | tylko parse_csv |
+| devstral | 2/3 | tylko parse_csv |
+| qwen3.6 (no-think) | 2/3 | tylko parse_csv |
+| deepseek-r1 (no-think) | 2/3 | tylko parse_csv |
+| north-mini-code | **1/3** | parse_csv + jedno z FIFO/scalanie |
+| phi4 | **1/3** | parse_csv + jedno |
+
+Analiza:
+- **parse_csv_line: WSZYSCY padają** - edge case pustych pól (input "" -> [""], "," -> ["",""];
+  modele upraszczają semantykę pustego pola). Uniwersalny błąd, więc to zadanie nie sortuje.
+- **apply_payments (FIFO) + coalesce_spans: ROZRÓŻNIAJĄ** - north/phi4 padli na jednym (słabsi
+  na precyzyjnej, podchwytliwej specyfikacji), reszta OK.
+
+NOWE odkrycie: **north-mini-code i phi4 - perfekcyjni na standardowych algorytmach (8/8), ale
+słabsi na nietrywialnych (1/3 vs 2/3).** qwen3.6/r1 (które odpadły w rankingu głównym przez
+szybkość) tu trzymają się LEPIEJ. Standardowy benchmark tego nie pokazał - dopiero edge-case
+i ścisła specyfikacja różnicują topowe modele. To ostateczne potwierdzenie tezy projektu.
+
+## KOD STANDARDOWY nie rozróżnia topów (łatwe i hard - wszyscy max)
 
 Wszystkie modele 30B+ dają kod 8/8 (łatwe) ORAZ 9/9 (trudne: sliding window, histogram,
 edit distance, coin change, trap water, word break). Nawet "hard" algorytmy LeetCode to dla
