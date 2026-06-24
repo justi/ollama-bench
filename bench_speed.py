@@ -56,6 +56,8 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
         think_chars = len(last.get("thinking") or "")
         resp_chars = len(last.get("response") or "")
     med = round(statistics.median(rates), 1) if rates else None
+    # rozrzut = max-min surowych przebiegow (consistency): maly = stabilny, duzy = zmienny
+    spread = round(max(rates) - min(rates), 1) if len(rates) >= 2 else None
     # response_tok_s_est: dla modeli thinking eval_count liczy tokeny myslenia, wiec surowy
     # tok/s zawyza przepustowosc WIDOCZNEGO outputu. Szacujemy output proporcjonalnie do
     # udzialu znakow response w calym wygenerowanym tekscie (grok #1, codex round2 #1).
@@ -67,6 +69,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
         "eval_tok_s": med,               # surowa przepustowosc generacji (z tokenami thinking)
         "response_tok_s_est": resp_est,  # szacowany WIDOCZNY output (dla thinking < eval_tok_s)
         "gen_tok_s": med,                # alias wsteczny (= eval_tok_s)
+        "gen_tok_s_spread": spread,      # max-min przebiegow = miara consistency
         "gen_tok_s_runs": rates,
         "prompt_tok_s": prompt_tok_s(last) if last else None,
         "total_s": total_seconds(last) if last else None,
@@ -82,7 +85,12 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
 def main():
     args = sys.argv[1:]
     big = "--big" in args
-    think = False if "--no-think" in args else None  # wylacza thinking u thinking-modeli
+    # --think=VALUE: jawny poziom (false->wylacz; low/high->string dla gpt-oss); inaczej --no-think
+    think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
+    if think_arg is not None:
+        think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
+    else:
+        think = False if "--no-think" in args else None
     models = [a for a in args if not a.startswith("--")]
     if not models:
         print("Uzycie: python3 bench_speed.py [--big] MODEL [MODEL ...]")

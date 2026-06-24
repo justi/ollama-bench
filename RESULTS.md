@@ -4,35 +4,43 @@
 modeli (codex ×2 + grok, ~30 findings) - wszystkie krytyczne/ważne naprawione i zweryfikowane.
 Pomiary: izolacja (1 model w pamięci), warmup + mediana z 3.
 
-## KOD EXPERT (9 zadań codex - mocne rozróżnienie, ranking ODWRÓCONY)
+## KOD EXPERT (9 zadań codex) - FAIR RE-TEST na best configach (2026-06-24)
 
 Dziewięć nietrywialnych zadań od codex (CSV, FIFO, scalanie przedziałów, ułamki, tokenizer,
-mini-make/propagacja zmian, bankers rounding, stable merge, CIDR). Spread kod 1-6/9 - wreszcie
-prawdziwe rozróżnienie. Testy zweryfikowane referencyjnymi rozwiązaniami (sanity-check).
+mini-make/propagacja zmian, bankers rounding, stable merge, CIDR). Testy zweryfikowane
+referencyjnymi rozwiązaniami (sanity-check). Configi przeszły review grok+codex przed testem.
 
-| Model | kod expert /9 | pozycja w tabeli master |
-|---|---|---|
-| **qwen3.6 (no-think)** | **6/9** | był "odrzucony" (wolny przez thinking) |
-| qwen3-coder | 5/9 | król wydajności |
-| gpt-oss | 4/9 | – |
-| devstral | 4/9 | – |
-| phi4 | 4/9 | – |
-| deepseek-r1 (no-think) | 4/9 | – |
-| **north-mini-code** | **1/9** | był **liderem wszechstronnym** |
+Każdy model na SWOIM best configu (`configs/*.best.Modelfile`) + poprawne sterowanie thinking
+per model: qwen36/north `--think=false`, gpt-oss `--think=low` (harmony - nie da się wyłączyć),
+qwen-coder/phi4/devstral bez thinking. To eliminuje błąd wcześniejszego testu (mixed configs).
 
-RANKING ODWRÓCONY względem tabeli master:
-- **qwen3.6 (no-think) = NAJLEPSZY koder trudnych zadań (6/9)** - bije nawet dedykowanego
-  qwen-coder. Obalony DWUKROTNIE: jego "słaby kod" był thinkingiem, a z no-think jest najlepszy.
-- **north-mini-code (lider master) = NAJGORSZY (1/9)** - rozwiązał 1 z 9. Świetny na łatwych
-  algorytmach i szybkości, ale pada na nietrywialnym kodzie.
+| Model | kod expert /9 | think | uwaga |
+|---|---|---|---|
+| **qwen3.6-best (no-think)** | **6/9** | `--think=false` | najlepszy koder trudnych zadań |
+| qwen-coder-best | 5/9 | brak (nie-thinking) | dedykowany koder |
+| gpt-oss-best | 5/9 | `--think=low` | było 4/9 z domyślnym high |
+| phi4-best | 4/9 | brak | mały (9 GB), efektywny |
+| devstral-best | 4/9 | brak | najlepszy reasoning (5.33) |
+| north-best (no-think) | 4/9 | `--think=false` | **było 1/9 z thinking ON!** |
+| deepseek-r1-best (no-think) | 4/9 | `--think=false` | usunięty - najwolniejszy, bez wygrywającej osi |
+
+KOREKTA WŁASNEGO WCZEŚNIEJSZEGO WNIOSKU ("mierz, nie zakładaj" zastosowane do nas samych):
+- Wcześniejszy "ranking ODWRÓCONY" gdzie **north = 1/9 (najgorszy)** był ARTEFAKTEM thinking ON
+  na mixed configach. Na fair best configu z `--think=false`: **north = 4/9** (środek stawki).
+  To DOKŁADNIE ten sam błąd, który wykryliśmy u qwen3.6 (4/8→6/9) - thinking ON psuje kod u
+  CAŁEJ rodziny Qwen-distill (qwen3.6, north, deepseek-r1), nie tylko u jednego modelu.
+- **qwen3.6 (no-think) potwierdzony jako najlepszy koder trudnych zadań (6/9)** - bije nawet
+  dedykowanego qwen-coder. Wniosek stabilny po fair re-teście.
+- gpt-oss: `--think=low` zamiast domyślnego `high` podniósł kod 4→5/9 - poziom thinking ma
+  znaczenie nawet gdy nie da się go wyłączyć.
 - Które zadania sortują: parse_csv pada u wszystkich (nie sortuje); tokenize_query/stale_targets
-  najtrudniejsze (nawet qwen3.6 padł); reszta oddziela słabszych od mocnych.
+  najtrudniejsze; reszta oddziela słabszych od mocnych.
 
-WNIOSEK FINALNY PROJEKTU: ranking modeli ZALEŻY OD TRUDNOŚCI zadań - i dobór zadań może go
-CAŁKOWICIE ODWRÓCIĆ. Łatwe algorytmy: wszyscy 8/8, north lider (przez szybkość). Trudny kod:
-qwen3.6 > qwen-coder >> north - odwrotnie. Benchmark mierzy tyle, ile potrafią jego zadania.
-To najmocniejsze potwierdzenie tezy "mierz, nie zakładaj" - bo nawet sam BENCHMARK trzeba
-zaprojektować tak, by faktycznie mierzył to, co się wydaje.
+WNIOSEK: na osi POPRAWNOŚCI kodu trudnego ranking jest płaski (4-6/9), prawdziwym różnicowaniem
+jest qwen3.6 (6) > qwen-coder=gpt-oss (5) > reszta (4). "Odwrócenie" z north na dnie NIE było
+realne - to był nasz własny błąd konfiguracji (thinking ON). Lekcja podwójna: nie tylko dobór
+zadań, ale i KONFIGURACJA modelu potrafi całkowicie zmyć ranking. Sam benchmark trzeba
+audytować tak samo krytycznie jak mierzone modele.
 
 ## KOD STANDARDOWY nie rozróżnia topów (łatwe i hard - wszyscy max)
 

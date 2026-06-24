@@ -81,11 +81,17 @@ def grade_bug(answer, keys):
 
 def main():
     args = sys.argv[1:]
-    no_think = "--no-think" in args  # wylacza thinking u thinking-modeli (qwen3.6, gpt-oss)
+    no_think = "--no-think" in args  # wylacza thinking u thinking-modeli (qwen3.6, deepseek-r1, north)
     hard = "--hard" in args  # trudne algorytmy LeetCode (sliding window, histogram, DP)
     expert = "--expert" in args  # nietrywialne, edge-case, scisla specyfikacja (rozroznia modele)
-    think = False if no_think else None
-    models = [a for a in args if a not in ("--no-think", "--hard", "--expert")]
+    # --think=VALUE: jawny poziom thinking. gpt-oss NIE da sie wylaczyc (harmony), tylko low|medium|high;
+    # Qwen-distill: false dziala. Mapowanie: false->False, none/default->None, reszta (low/high)->string.
+    think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
+    if think_arg is not None:
+        think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
+    else:
+        think = False if no_think else None
+    models = [a for a in args if not a.startswith("--")]
     if not models:
         print("Uzycie: python3 bench_coding.py [--no-think] [--hard|--expert] MODEL [MODEL ...]")
         sys.exit(1)
