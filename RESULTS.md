@@ -4,31 +4,35 @@
 modeli (codex ×2 + grok, ~30 findings) - wszystkie krytyczne/ważne naprawione i zweryfikowane.
 Pomiary: izolacja (1 model w pamięci), warmup + mediana z 3.
 
-## KOD EXPERT (3 zadania codex - nietrywialne, WRESZCIE rozróżniają)
+## KOD EXPERT (9 zadań codex - mocne rozróżnienie, ranking ODWRÓCONY)
 
-Trzy zadania od codex ze ścisłą specyfikacją + edge cases (parser CSV, FIFO płatności, scalanie
-przedziałów). Żaden model nie ma kompletu - i north/phi4 są wyraźnie słabsze.
+Dziewięć nietrywialnych zadań od codex (CSV, FIFO, scalanie przedziałów, ułamki, tokenizer,
+mini-make/propagacja zmian, bankers rounding, stable merge, CIDR). Spread kod 1-6/9 - wreszcie
+prawdziwe rozróżnienie. Testy zweryfikowane referencyjnymi rozwiązaniami (sanity-check).
 
-| Model | kod expert /3 | uwaga |
+| Model | kod expert /9 | pozycja w tabeli master |
 |---|---|---|
-| qwen3-coder | 2/3 | tylko parse_csv padł |
-| gpt-oss | 2/3 | tylko parse_csv |
-| devstral | 2/3 | tylko parse_csv |
-| qwen3.6 (no-think) | 2/3 | tylko parse_csv |
-| deepseek-r1 (no-think) | 2/3 | tylko parse_csv |
-| north-mini-code | **1/3** | parse_csv + jedno z FIFO/scalanie |
-| phi4 | **1/3** | parse_csv + jedno |
+| **qwen3.6 (no-think)** | **6/9** | był "odrzucony" (wolny przez thinking) |
+| qwen3-coder | 5/9 | król wydajności |
+| gpt-oss | 4/9 | – |
+| devstral | 4/9 | – |
+| phi4 | 4/9 | – |
+| deepseek-r1 (no-think) | 4/9 | – |
+| **north-mini-code** | **1/9** | był **liderem wszechstronnym** |
 
-Analiza:
-- **parse_csv_line: WSZYSCY padają** - edge case pustych pól (input "" -> [""], "," -> ["",""];
-  modele upraszczają semantykę pustego pola). Uniwersalny błąd, więc to zadanie nie sortuje.
-- **apply_payments (FIFO) + coalesce_spans: ROZRÓŻNIAJĄ** - north/phi4 padli na jednym (słabsi
-  na precyzyjnej, podchwytliwej specyfikacji), reszta OK.
+RANKING ODWRÓCONY względem tabeli master:
+- **qwen3.6 (no-think) = NAJLEPSZY koder trudnych zadań (6/9)** - bije nawet dedykowanego
+  qwen-coder. Obalony DWUKROTNIE: jego "słaby kod" był thinkingiem, a z no-think jest najlepszy.
+- **north-mini-code (lider master) = NAJGORSZY (1/9)** - rozwiązał 1 z 9. Świetny na łatwych
+  algorytmach i szybkości, ale pada na nietrywialnym kodzie.
+- Które zadania sortują: parse_csv pada u wszystkich (nie sortuje); tokenize_query/stale_targets
+  najtrudniejsze (nawet qwen3.6 padł); reszta oddziela słabszych od mocnych.
 
-NOWE odkrycie: **north-mini-code i phi4 - perfekcyjni na standardowych algorytmach (8/8), ale
-słabsi na nietrywialnych (1/3 vs 2/3).** qwen3.6/r1 (które odpadły w rankingu głównym przez
-szybkość) tu trzymają się LEPIEJ. Standardowy benchmark tego nie pokazał - dopiero edge-case
-i ścisła specyfikacja różnicują topowe modele. To ostateczne potwierdzenie tezy projektu.
+WNIOSEK FINALNY PROJEKTU: ranking modeli ZALEŻY OD TRUDNOŚCI zadań - i dobór zadań może go
+CAŁKOWICIE ODWRÓCIĆ. Łatwe algorytmy: wszyscy 8/8, north lider (przez szybkość). Trudny kod:
+qwen3.6 > qwen-coder >> north - odwrotnie. Benchmark mierzy tyle, ile potrafią jego zadania.
+To najmocniejsze potwierdzenie tezy "mierz, nie zakładaj" - bo nawet sam BENCHMARK trzeba
+zaprojektować tak, by faktycznie mierzył to, co się wydaje.
 
 ## KOD STANDARDOWY nie rozróżnia topów (łatwe i hard - wszyscy max)
 
