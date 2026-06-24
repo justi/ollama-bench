@@ -29,7 +29,7 @@ def _strip_latest(n):
     return n[:-7] if n.endswith(":latest") else n
 
 
-def measure_model(model, prompt, num_predict, runs=RUNS):
+def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
     # Izolacja: wyladuj WSZYSTKIE inne modele, by w pamieci byl tylko mierzony.
     # Wiecej niz jeden model = konkurencja o VRAM/RAM = zanizone, niewiarygodne tok/s.
     iso_confirmed = isolate(model)  # True dopiero gdy /api/ps potwierdzi pustke
@@ -37,7 +37,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS):
     # Bez tego pierwszy pomiar bywa zanizony (cold start). Wynik warmupu odrzucamy.
     # gen tok/s liczymy z eval_duration, ktore NIE zawiera load_duration (load z dysku poza tok/s).
     try:
-        generate(model, "Czesc", num_predict=8)
+        generate(model, "Czesc", num_predict=8, think=think)
     except Exception:
         pass
     # Weryfikacja: po warmupie w pamieci ma byc DOKLADNIE mierzony model.
@@ -47,7 +47,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS):
     isolation_ok = bool(iso_confirmed) and norm == [_strip_latest(model)]
     rates, last, think_chars, resp_chars = [], None, 0, 0
     for _ in range(runs):
-        last = generate(model, prompt, num_predict=num_predict)
+        last = generate(model, prompt, num_predict=num_predict, think=think)
         gr = gen_tok_s(last)
         if gr:
             rates.append(gr)
@@ -82,6 +82,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS):
 def main():
     args = sys.argv[1:]
     big = "--big" in args
+    think = False if "--no-think" in args else None  # wylacza thinking u thinking-modeli
     models = [a for a in args if not a.startswith("--")]
     if not models:
         print("Uzycie: python3 bench_speed.py [--big] MODEL [MODEL ...]")
@@ -98,7 +99,7 @@ def main():
     for m in models:
         print(f"  {m} ... ", end="", flush=True)
         try:
-            row = measure_model(m, prompt, num_predict)
+            row = measure_model(m, prompt, num_predict, think=think)
         except Exception as e:
             print(f"BLAD: {e}")
             rows.append({"model": m, "error": str(e)})
