@@ -41,12 +41,28 @@ Bez osi zależnych od configu (speed/energia).
 | qwen-coder (natywny) | 3.67 [3,4,4] | 1 | 8/8 |
 | phi4 (natywny) | 3.33 [2,6,2] | **4 (chaos!)** | 8/8 |
 
-### KONKLUZJA obu etapów
+### KOREKTA (po teście z thinking OFF - wkład usera, config z forum)
 
-1. **Jakość KODU to stabilna cecha MODELU, niezależna od parametrów.** 5 modeli (qwen-coder, gpt-oss,
-   devstral, north, phi4) dają 8/8 w KAŻDYM configu. qwen3.6 daje generację 2/5 w KAŻDYM configu
-   (temp 1, 0.7, 0.3) - best params podniosły tylko bug-finding, nie pisanie kodu. To MODEL ogólny
-   vs koderzy, nie kwestia temperatury.
+**Wniosek "qwen3.6 słaby kod = model" BYŁ BŁĘDNY - to był THINKING, nie model.**
+
+| qwen3.6 config | kod /8 | generacja |
+|---|---|---|
+| thinking ON (temp 1 / 0.7 / 0.3) | 4-5/8 | **2-3/5** |
+| **NO-THINK + params unsloth** (temp 0.7, top_p 0.8, top_k 20, min_p 0, presence 1.5) | **8/8** | **5/5** |
+
+Z thinking ON qwen3.6 wpadał w eksplozję myślenia (3573 zn) - kod chował się w polu `thinking`
+albo był ucinany, więc `extract_code` z `response` go nie łapał. `think=False` (Ollama API)
+naprawił wszystko: qwen3.6 pisze kod tak dobrze jak dedykowani koderzy. **Testowałem go w
+najgorszej formie, nie najlepszej.** (reasoning bez zmian: 3.67 - szum; tam thinking nie psuł).
+
+Lekcja: thinking-modele do KODU testuj z `--no-think` - inaczej kod ginie w thinking i wynik
+jest fałszywie zaniżony. To dotyczy qwen3.6 ekstremalnie (3573 zn myślenia); gpt-oss/north mniej.
+
+### KONKLUZJA obu etapów (skorygowana)
+
+1. **Jakość KODU większości modeli jest stabilna (8/8), ALE u thinking-modeli zależy od trybu.**
+   qwen-coder, gpt-oss, devstral, north, phi4 → 8/8 zawsze. qwen3.6 → 8/8 TYLKO z thinking OFF
+   (z ON ginie w myśleniu). Czyli "typ modelu" to za mało - trzeba też właściwy tryb thinking.
 
 2. **"Best params" bywa mitem.** phi4 @ natywnej temp wyszedł GORSZY i chaotyczny (3.33, [2,6,2],
    zakres 4) niż @ wymuszonej 0.7 (5.0, [5,5,5], zakres 0). "Zostaw natywne" nie zawsze wygrywa.
@@ -227,7 +243,10 @@ Odkrycia:
 | kod /8 | 4/8 (gen 2/5) | **8/8** |
 | energia kWh/1M | 0.74 | **0.20** |
 
-**Wniosek: nowsza generacja/większy rozmiar NIE pomogły - bo to inny TYP modelu.** qwen3.6
+**[OBALONE później - patrz KOREKTA w sekcji ETAP 2: kod qwen3.6 4/8 wynikał z thinking ON,
+nie z modelu. Z `--no-think` + params unsloth qwen3.6 daje kod 8/8 (generacja 5/5).]**
+
+**Wniosek (przy thinking ON, czyli na ZŁYM configu): nowsza generacja nie pomaga na kodzie.** qwen3.6
 (36B, gen 3.6, OGÓLNY - pod PL-tech pipeline) przegrywa z qwen3-coder (30B, dedykowany KODER)
 na wszystkich osiach benchmarku kodowego:
 - **kod 4/8 vs 8/8** - qwen3.6 nie napisał połowy funkcji; koder to jego domena, nie qwen3.6.
