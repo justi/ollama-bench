@@ -82,14 +82,15 @@ def grade_bug(answer, keys):
 def main():
     args = sys.argv[1:]
     no_think = "--no-think" in args  # wylacza thinking u thinking-modeli (qwen3.6, gpt-oss)
-    hard = "--hard" in args  # trudne algorytmy (sliding window, histogram, DP) - rozrozniaja modele
+    hard = "--hard" in args  # trudne algorytmy LeetCode (sliding window, histogram, DP)
+    expert = "--expert" in args  # nietrywialne, edge-case, scisla specyfikacja (rozroznia modele)
     think = False if no_think else None
-    models = [a for a in args if a not in ("--no-think", "--hard")]
+    models = [a for a in args if a not in ("--no-think", "--hard", "--expert")]
     if not models:
-        print("Uzycie: python3 bench_coding.py [--no-think] [--hard] MODEL [MODEL ...]")
+        print("Uzycie: python3 bench_coding.py [--no-think] [--hard|--expert] MODEL [MODEL ...]")
         sys.exit(1)
     C = load_prompts()["coding"]
-    gen_tasks = C["generate_hard"] if hard else C["generate"]
+    gen_tasks = C["generate_expert"] if expert else (C["generate_hard"] if hard else C["generate"])
     bug_tasks = C["bugfind"]
     total = len(gen_tasks) + len(bug_tasks)
 

@@ -106,6 +106,23 @@
         "tests": [[["leetcode",["leet","code"]], true], [["catsandog",["cats","dog","sand","and","cat"]], false], [["applepenapple",["apple","pen"]], true], [["aaaaaaa",["aaaa","aaa"]], true]]
       }
     ],
+    "generate_expert": [
+      {
+        "func": "parse_csv_line",
+        "prompt": "Napisz funkcje Python parse_csv_line(line) zwracajaca liste pol. Separatorem jest przecinek, puste pola dozwolone. Jezeli pole ZACZYNA sie od znaku cudzyslowu, jest cytowane: para dwoch cudzyslowow oznacza literalny cudzyslow, cytowanie konczy sie pierwszym niezdublowanym cudzyslowem, a znaki po zamykajacym cudzyslowie az do przecinka naleza do tego samego pola. Jezeli pole NIE zaczyna sie od cudzyslowu, wszystkie cudzyslowy sa zwyklymi znakami. Nie uzywaj modulu csv. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[""], [""]], [[","], ["", ""]], [["a,,b,"], ["a", "", "b", ""]], [["a,\"b,c\",d"], ["a", "b,c", "d"]], [["\"\"\"\" ,x"], ["\" ", "x"]], [[" \"a\",b"], [" \"a\"", "b"]], [["\"a\"tail,\"b\"\"c\""], ["atail", "b\"c"]]]
+      },
+      {
+        "func": "apply_payments",
+        "prompt": "Napisz funkcje Python apply_payments(invoices, payments) gdzie invoices to salda faktur (grosze), payments to platnosci. Kazda platnosc kolejno splaca najwczesniejsza fakture z DODATNIM saldem. Jezeli platnosc przewyzsza sume pozostalych sald, niewykorzystana reszta tej platnosci trafia do nadplat; jezeli zostaje zuzyta w calosci, jej nadplata to 0. Nie modyfikuj list wejsciowych. Zwroc pare (krotke) dwoch elementow: lista koncowych sald faktur ORAZ lista nadplat dla kazdej platnosci. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[100, 200], [50]], [[50, 200], [0]]], [[[100, 200], [150]], [[0, 150], [0]]], [[[100, 200], [500]], [[0, 0], [200]]], [[[], [10, 0]], [[], [10, 0]]], [[[0, 100, 0, 50], [30, 80]], [[0, 0, 0, 40], [0, 0]]], [[[40, 60], [0, 30, 100]], [[0, 0], [0, 0, 30]]], [[[10], [3, 3, 3, 3]], [[0], [0, 0, 0, 2]]]]
+      },
+      {
+        "func": "coalesce_spans",
+        "prompt": "Napisz funkcje Python coalesce_spans(spans, gap=0) gdzie spans to lista trojek (label, start, end), start<=end, gap>=0. Scalaj przedzialy WYLACZNIE w obrebie tego samego label. Posortuj przedzialy kazdego label po (start, end). Scal sasiednie gdy next_start <= current_end + gap; scalony przedzial ma start pierwszego i end rowny maksimum koncow. Przedzialy zerowej dlugosci (start==end) sa poprawne i biora udzial w scalaniu. Zwroc liste trojek posortowana najpierw po label rosnaco, wewnatrz po start. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[], 0], []], [[[["a", 1, 3]], 0], [["a", 1, 3]]], [[[["a", 1, 3], ["a", 3, 5]], 0], [["a", 1, 5]]], [[[["a", 1, 3], ["a", 4, 5]], 0], [["a", 1, 3], ["a", 4, 5]]], [[[["a", 1, 3], ["a", 4, 5]], 1], [["a", 1, 5]]], [[[["b", 0, 2], ["a", 1, 4], ["b", 2, 3], ["a", 10, 11]], 0], [["a", 1, 4], ["a", 10, 11], ["b", 0, 3]]], [[[["b", 10, 12], ["a", 5, 7], ["a", 1, 10], ["a", 10, 10]], 0], [["a", 1, 10], ["b", 10, 12]]], [[[["x", 5, 5], ["x", 6, 6]], 1], [["x", 5, 6]]]]
+      }
+    ],
     "bugfind": [
       {
         "prompt": "Znajdz blad w tym kodzie Python:\n\nfor i in range(len(arr)):\n    print(arr[i+1])\n\nOpisz krotko, na czym polega blad.",
