@@ -80,9 +80,12 @@ def grade_bug(answer, keys):
 
 
 def main():
-    models = sys.argv[1:]
+    args = sys.argv[1:]
+    no_think = "--no-think" in args  # wylacza thinking u thinking-modeli (qwen3.6, gpt-oss)
+    think = False if no_think else None
+    models = [a for a in args if a != "--no-think"]
     if not models:
-        print("Uzycie: python3 bench_coding.py MODEL [MODEL ...]")
+        print("Uzycie: python3 bench_coding.py [--no-think] MODEL [MODEL ...]")
         sys.exit(1)
     C = load_prompts()["coding"]
     gen_tasks, bug_tasks = C["generate"], C["bugfind"]
@@ -95,7 +98,7 @@ def main():
         print("  [generacja kodu - auto-test]")
         for t in gen_tasks:
             try:
-                r = generate(m, t["prompt"], num_predict=1500)
+                r = generate(m, t["prompt"], num_predict=1500, think=think)
                 code = extract_code(r.get("response") or "")
                 ok, msg = run_generated(code, t["func"], t["tests"])
             except Exception as e:
@@ -108,7 +111,7 @@ def main():
         for i, t in enumerate(bug_tasks, 1):
             ans = ""
             try:
-                r = generate(m, t["prompt"], num_predict=800)
+                r = generate(m, t["prompt"], num_predict=800, think=think)
                 ans = r.get("response") or ""
                 ok = grade_bug(ans, t["keys"])
             except Exception:

@@ -62,9 +62,11 @@ def main():
             print("--runs wymaga liczby")
             sys.exit(1)
         args = args[:idx] + args[idx + 2:]
-    models = args
+    no_think = "--no-think" in args  # wylacza thinking u thinking-modeli
+    think = False if no_think else None
+    models = [a for a in args if a != "--no-think"]
     if not models:
-        print("Uzycie: python3 bench_reasoning.py [--runs N] MODEL [MODEL ...]")
+        print("Uzycie: python3 bench_reasoning.py [--runs N] [--no-think] MODEL [MODEL ...]")
         sys.exit(1)
     maxs = len(PUZZLES)
 
@@ -76,7 +78,7 @@ def main():
             score, details = 0, []
             for i, (q, keys, anti, all_g) in enumerate(PUZZLES, 1):
                 try:
-                    r = generate(m, q, num_predict=3000)
+                    r = generate(m, q, num_predict=3000, think=think)
                     ans = r.get("response") or ""
                 except Exception as e:
                     details.append({"q": i, "error": str(e)})

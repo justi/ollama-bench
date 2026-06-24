@@ -68,7 +68,7 @@ def isolate(target, poll_timeout=30):
     return False  # timeout - pamiec wciaz niepusta
 
 
-def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_alive=None):
+def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_alive=None, think=None):
     """Wywoluje /api/generate (stream=false) i zwraca pelny JSON odpowiedzi.
 
     Kluczowe pola w odpowiedzi Ollamy:
@@ -90,6 +90,8 @@ def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_al
     }
     if keep_alive is not None:
         payload["keep_alive"] = keep_alive
+    if think is not None:
+        payload["think"] = think  # Ollama: wylaczenie thinking u thinking-modeli (qwen3.6/gpt-oss)
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         OLLAMA_HOST + "/api/generate",
