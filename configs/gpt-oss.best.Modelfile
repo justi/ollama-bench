@@ -1,0 +1,7 @@
+# gpt-oss:20b - best config (thinking HARDCODED - nie wylaczysz, tylko --think=low do kodu)
+# temp 0.3 (NIE 0 - 100% petli!), num_predict 3000 (thinking nie ucina odpowiedzi)
+# ollama create gpt-oss-best -f configs/gpt-oss.best.Modelfile
+FROM gpt-oss:20b
+PARAMETER temperature 0.3
+PARAMETER num_predict 3000
+PARAMETER num_ctx 8192

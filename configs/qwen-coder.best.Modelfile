@@ -1,0 +1,8 @@
+# qwen3-coder:30b - best config (dedykowany koder, BEZ thinking)
+# ollama create qwen-coder-best -f configs/qwen-coder.best.Modelfile
+FROM qwen3-coder:30b
+PARAMETER temperature 0.7
+PARAMETER top_k 20
+PARAMETER top_p 0.8
+PARAMETER repeat_penalty 1.05
+PARAMETER num_ctx 8192

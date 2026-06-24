@@ -1,0 +1,6 @@
+# devstral:24b - best config (Mistral, BEZ thinking)
+# ollama create devstral-best -f configs/devstral.best.Modelfile
+FROM devstral:24b
+PARAMETER temperature 0.2
+PARAMETER top_p 0.9
+PARAMETER num_ctx 8192
