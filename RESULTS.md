@@ -50,19 +50,24 @@ low/medium/high, nie zero; ollama issue #11751). Prawdziwy no-think tylko qwen36
 |---|---|---|---|---|---|---|
 | north-mini-code-1.0 | **64.7** | 3.67 [5,3,3] | 2 | 8/8 | 0.19 | TAK |
 | qwen36-unsloth | ~47 (eval; bug 400 w speed) | 3.33 [3,3,4] | 1 | 8/8 | ~0.27 | TAK |
+| deepseek-r1-8k | ~4 (wolny; speed bug) | 4.33 [4,4,5] | 1 | 8/8 | ~3.1 | TAK |
 | gpt-oss:20b | 15-22 | 4.0 [4,4,4] | 0 | 8/8 | ~0.7 | NIE (ignoruje think=False) |
 
-Thinking ON vs OFF (north, qwen36 - gdzie no-think działa):
+Thinking ON vs OFF (gdzie no-think działa):
 
 | Model | output ON→OFF | reasoning ON→OFF | kod ON→OFF |
 |---|---|---|---|
 | north | 28.7 → **64.7** (2.3x szybciej) | 5.0 → 3.67 (gorzej) | 8/8 → 8/8 |
-| qwen36 | ~17 → ~47 (2.8x) | ~4 → 3.33 (gorzej/szum) | **4/8 → 8/8 (naprawione)** |
+| qwen36 (Qwen-distill) | ~17 → ~47 | ~4 → 3.33 | **4/8 → 8/8 (naprawione)** |
+| deepseek-r1 (Qwen-distill) | ~1.5 → ~4 | 5/6 → 4.33 | **4/8 → 8/8 (naprawione)** |
 
 Wnioski:
-- **Thinking OFF = dużo szybciej** (north 2.3x, brak eksplozji myślenia) + **naprawiony kod**
-  (qwen3.6 4→8 - kod nie ginie w thinking). **ALE gorszy reasoning** (north 5.0→3.67 - thinking
-  realnie pomaga logice). Trade-off: thinking do reasoningu, no-think do kodu i szybkości.
+- **Thinking OFF = dużo szybciej** (north 2.3x) + **naprawiony kod u Qwen-distill** - OBA modele
+  Qwen-distill (qwen3.6, deepseek-r1) miały kod 4/8 z thinking ON i 8/8 z OFF. Identyczny wzorzec:
+  kod ginie w eksplozji myślenia, `extract_code` z response go nie łapie. To NIE słaby model -
+  to thinking. north/gpt-oss myślą mniej, więc kod 8/8 zawsze.
+- **ALE thinking OFF = gorszy reasoning** (north 5.0→3.67 - thinking realnie pomaga logice).
+  Trade-off: thinking do reasoningu, no-think do kodu i szybkości.
 - **gpt-oss: thinkingu NIE da się wyłączyć** (hardcoded w training; think=False ignorowany).
   Tylko minimalizacja przez reasoning_effort="low". To ograniczenie Ollama+gpt-oss, nie benchmarku.
 - Runtime: dla wiernego sterowania thinkingiem (zwł. gpt-oss) trzeba llama.cpp llama-server z
