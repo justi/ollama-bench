@@ -384,6 +384,33 @@ angielskie opisy bugu były odrzucane. deepseek-coder słaby na logice, ale na K
 gpt-oss energia liczona dla OUTPUT (15.1 tok/s) wzrosła z ~0.24 do 0.83 - bo na 1M widocznych
 tokenów generuje ~3.6× więcej (z myśleniem). To realny koszt thinking.
 
+## JAK MIERZONO ENERGIĘ (uczciwie: NIE mierzono - OBLICZONO)
+
+WAŻNE: zużycia energii NIE mierzyłam realnym watomierzem ani powermetrics. Jest WYLICZONE
+ze zmierzonego tok/s i ZAŁOŻONEJ stałej mocy. Jedyny twardy pomiar tu to tok/s.
+
+Wzór (bench_cost.py):
+  sekundy_na_1M = 1_000_000 / tok_s
+  kWh/1M = POWER_W * sekundy_na_1M / 3_600_000      # (W*s -> kWh)
+  POWER_W = 45  # SZACUNEK mocy M1 Max pod inference (GPU-bound), NIE pomiar
+
+Co to znaczy dla wiarygodności:
+- RANKING energii = ranking 1/tok_s. Moc założono JEDNAKOWĄ dla wszystkich, więc kolejność jest
+  tak wiarygodna jak pomiar tok/s (izolacja, mediana z 3) - i odporna. Szybszy model = mniej energii.
+- WARTOŚCI BEZWZGLĘDNE (0.204 kWh itd.) skalują się liniowo z założeniem 45 W. Jeśli realna moc
+  to np. 50 W, pomnóż wszystkie przez 50/45. To jedyna niepewna zmienna.
+- Założenie "równa moc dla każdego modelu" to przybliżenie (dense 24B devstral może ciągnąć inną
+  moc niż MoE-a3b), ALE moc waha się znacznie mniej niż tok/s (rozpiętość 6×), więc nie zmienia
+  rankingu - tylko drobne korekty wartości bezwzględnych.
+- NIE uwzględniono: prompt processingu, loadu modelu z dysku, mocy bazowej/idle, podziału CPU/GPU.
+
+Jak zmierzyć NAPRAWDĘ (niezrobione - wymaga sudo/root, interaktywne):
+  sudo powermetrics --samplers gpu_power -i 1000     # podczas generacji
+  -> uśrednij GPU Power [mW] przez okno generacji, wstaw jako POWER_W (BENCH_POWER_W=...).
+Dlatego kWh podaję jako SZACUNEK, nie fakt zmierzony - zgodnie z "mierz, nie zakładaj": gdy
+pomiar (powermetrics) jest niewykonany, wynik jest oznaczony jako niezweryfikowany, nie podany
+jako fakt. Pewny jest ranking (z tok/s), niepewna jest skala bezwzględna (z 45 W).
+
 ## MACIERZ DECYZYJNA: output × reasoning × consistency × kod × energia (fast)
 
 | Model | output tok/s | reasoning (śr.) | consistency | kod /8 | energia kWh/1M |
