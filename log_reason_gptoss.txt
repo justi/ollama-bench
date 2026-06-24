@@ -1,0 +1,11 @@
+
+== gpt-oss-best ==
+  przebieg 1: 4/6
+  przebieg 2: 4/6
+  przebieg 3: 4/6
+  SREDNIA: 4.0/6  (zakres 4-4, przebiegi [4, 4, 4])
+
+== PODSUMOWANIE ==
+  gpt-oss-best                   srednia 4.0/6  zakres 4-4  [4, 4, 4]
+
+Zapisano: results_reasoning.json

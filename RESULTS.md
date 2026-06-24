@@ -51,7 +51,40 @@ Ollama 3.6 - ani lepszy, ani gorszy. Potrójna lekcja "mierz, nie zakładaj": (1
 (2) konfiguracja modelu (thinking), (3) parametry benchmarku (num_predict) i liczba prób (n)
 potrafią każda z osobna całkowicie zmyć ranking. Sam benchmark trzeba audytować jak mierzony obiekt.
 
-## MACIERZ FINALNA: best configs, wszystkie osie (n=3 kod + izolowany speed/energia, 2026-06-24)
+## TABELA WSZECHSTRONNA: kod + reasoning + speed + energia (best configs, thinking OFF, 2026-06-24)
+
+Wszystkie osie jakości z thinkingiem WYŁĄCZONYM (`--no-think`; gpt-oss `--think=low` - nie da
+się w pełni wyłączyć). Kod = mediana n=3 /9. Reasoning = średnia n=3 /6 (zagadki logiczne).
+
+| Model | kod med /9 | reasoning śr /6 | tok/s | kWh/1M | profil |
+|---|---|---|---|---|---|
+| **unsloth-q4xl-best** | **6** | **5.0** | 38.0 | 0.329 | jedyny mocny na OBU osiach |
+| qwen-coder-best | 5 | 3.67 | **61.2** | **0.204** | koder + król efektywności |
+| gpt-oss-best | **6** | 4.0* | 51.2 | 0.244 | kod-sufit + szybki (kod loteria) |
+| qwen36-best | **6** | 3.0 | 44.9 | 0.278 | najlepszy kod, reasoning słaby BEZ thinking |
+| north-best | 4 | 4.0 | 51.0 | 0.245 | szybki, średni wszędzie |
+| devstral-best | 4 | 5.0 | 9.8 | 1.276 | reasoner, brutalnie wolny (6x energii) |
+| phi4-best | 3 | **5.33** | 20.2 | 0.619 | najlepszy reasoning, najgorszy kod |
+
+\* gpt-oss z `--think=low` (harmony - nie da się wyłączyć), więc jego reasoning ma minimalny thinking.
+
+INWERSJA KOD↔REASONING (best model zależy od zadania - dosłownie):
+- **phi4**: najgorszy kod (3) ↔ NAJLEPSZY reasoning (5.33).
+- **qwen36**: NAJLEPSZY kod (6) ↔ najgorszy reasoning (3.0, thinking off).
+- Dwa modele zamieniają się miejscami na dwóch osiach - dobór zadania całkowicie odwraca ranking.
+
+CAVEAT (krytyczny dla uczciwości): qwen36/north to thinking-modele - ich reasoning ŻYJE w trybie
+thinking. Reasoning mierzony z thinking OFF odbiera im główną broń: qwen36 3.0 to "qwen36 bez
+mózgu reasoningowego". Z thinking ON skoczyłby wysoko (to jego projekt). Pomiar thinking-off jest
+fair floor jednakowy dla wszystkich, ale SPECYFICZNIE zaniża thinking-modele na osi reasoningu.
+Pełny obraz wymagałby drugiej tabeli reasoning z thinking ON (nie mierzona tutaj na życzenie).
+
+WNIOSEK: z thinkingiem OFF unsloth-q4xl jest najbardziej ZBALANSOWANY (kod 6 + reasoning 5.0) -
+hyped quant raz dany fair budżet okazuje się najwszechstronniejszy. qwen-coder wygrywa na
+efektywności (kod 5, najszybszy+najtańszy). devstral/phi4 mocne TYLKO na reasoningu, drogo
+(wolne). Ale ranking jest jednowymiarowy bez thinking-on reasoningu - patrz caveat.
+
+## MACIERZ FINALNA: best configs, osie kod + speed/energia (n=3 kod + izolowany speed/energia, 2026-06-24)
 
 Kod = mediana z n=3 (fair num_predict=3000). Speed = output tok/s, izolacja, mediana z 3 (rozrzut
 0.1-4 tok/s - throughput stabilny, cała zmienność jest w jakości kodu). Energia = kWh/1M tokenów

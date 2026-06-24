@@ -63,10 +63,16 @@ def main():
             sys.exit(1)
         args = args[:idx] + args[idx + 2:]
     no_think = "--no-think" in args  # wylacza thinking u thinking-modeli
-    think = False if no_think else None
-    models = [a for a in args if a != "--no-think"]
+    # --think=VALUE: jawny poziom (false->wylacz; low/high->string dla gpt-oss, ktory nie da
+    # sie wylaczyc - harmony); inaczej --no-think -> False, brak flagi -> None (domyslny tryb).
+    think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
+    if think_arg is not None:
+        think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
+    else:
+        think = False if no_think else None
+    models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Uzycie: python3 bench_reasoning.py [--runs N] [--no-think] MODEL [MODEL ...]")
+        print("Uzycie: python3 bench_reasoning.py [--runs N] [--no-think|--think=low] MODEL [...]")
         sys.exit(1)
     maxs = len(PUZZLES)
 
