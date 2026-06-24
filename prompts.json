@@ -121,6 +121,36 @@
         "func": "coalesce_spans",
         "prompt": "Napisz funkcje Python coalesce_spans(spans, gap=0) gdzie spans to lista trojek (label, start, end), start<=end, gap>=0. Scalaj przedzialy WYLACZNIE w obrebie tego samego label. Posortuj przedzialy kazdego label po (start, end). Scal sasiednie gdy next_start <= current_end + gap; scalony przedzial ma start pierwszego i end rowny maksimum koncow. Przedzialy zerowej dlugosci (start==end) sa poprawne i biora udzial w scalaniu. Zwroc liste trojek posortowana najpierw po label rosnaco, wewnatrz po start. Zwroc TYLKO kod w bloku ```python```.",
         "tests": [[[[], 0], []], [[[["a", 1, 3]], 0], [["a", 1, 3]]], [[[["a", 1, 3], ["a", 3, 5]], 0], [["a", 1, 5]]], [[[["a", 1, 3], ["a", 4, 5]], 0], [["a", 1, 3], ["a", 4, 5]]], [[[["a", 1, 3], ["a", 4, 5]], 1], [["a", 1, 5]]], [[[["b", 0, 2], ["a", 1, 4], ["b", 2, 3], ["a", 10, 11]], 0], [["a", 1, 4], ["a", 10, 11], ["b", 0, 3]]], [[[["b", 10, 12], ["a", 5, 7], ["a", 1, 10], ["a", 10, 10]], 0], [["a", 1, 10], ["b", 10, 12]]], [[[["x", 5, 5], ["x", 6, 6]], 1], [["x", 5, 6]]]]
+      },
+      {
+        "func": "fraction_pipeline",
+        "prompt": "Napisz funkcje Python fraction_pipeline(start, ops). start to para (licznik, mianownik). ops to lista operacji (op, licznik, mianownik), gdzie op jest jednym ze znakow +, -, *, /. Wykonuj operacje kolejno na ulamkach, bez uzywania fractions.Fraction. Wynik zwroc jako skrocony ulamek (licznik, mianownik) z dodatnim mianownikiem. Zero zapisuj jako (0, 1). Jezeli dowolny mianownik wejsciowy jest zerem albo wystepuje dzielenie przez ulamek rowny zero, zwroc None. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[1,2],[["+",1,3]]],[5,6]], [[[-2,4],[["*",6,-9]]],[1,3]], [[[3,-6],[["-",1,2],["+",5,10]]],[-1,2]], [[[0,5],[["/",2,3]]],[0,1]], [[[5,7],[["/",0,4]]],null], [[[2,3],[["+",1,6],["*",-3,5],["-",1,-10]]],[-2,5]]]
+      },
+      {
+        "func": "tokenize_query",
+        "prompt": "Napisz funkcje Python tokenize_query(text), ktora tokenizuje prosty jezyk warunkow. Pomijaj biale znaki. Zwracaj liste par (typ, wartosc). Operatory wieloznakowe maja priorytet przed krotszymi: 'not in' -> NOT_IN, 'is not' -> IS_NOT, '>=' -> GE, '<=' -> LE, '!=' -> NE, '==' -> EQ. Slowa kluczowe: and, or, not, in, is. Nazwa zaczyna sie litera albo _, dalej litery, cyfry i _. Liczby calkowite z cyfr - zwracaj jako int. Znaki ( ) , > < zwracaj jako LPAREN, RPAREN, COMMA, GT, LT. Nieznany pojedynczy znak zwroc jako ('ERROR', znak) i kontynuuj. Frazy 'not in' i 'is not' rozpoznawaj tylko z dokladnie jedna spacja miedzy slowami i tylko gdy sa calymi slowami. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["age >= 18 and country not in (1,2)"], [["NAME","age"],["GE",">="],["INT",18],["AND","and"],["NAME","country"],["NOT_IN","not in"],["LPAREN","("],["INT",1],["COMMA",","],["INT",2],["RPAREN",")"]]], [["not inland"], [["NOT","not"],["NAME","inland"]]], [["status is not 0 or x != 10"], [["NAME","status"],["IS_NOT","is not"],["INT",0],["OR","or"],["NAME","x"],["NE","!="],["INT",10]]], [["a not  in b"], [["NAME","a"],["NOT","not"],["IN","in"],["NAME","b"]]], [["not_in not in in2"], [["NAME","not_in"],["NOT_IN","not in"],["NAME","in2"]]], [["x@5 <= y"], [["NAME","x"],["ERROR","@"],["INT",5],["LE","<="],["NAME","y"]]]]
+      },
+      {
+        "func": "stale_targets",
+        "prompt": "Napisz funkcje Python stale_targets(graph, changed, previous=None). graph to slownik {cel: [zaleznosci]}. Zaleznosc moze byc innym celem z graph albo plikiem zewnetrznym. changed to lista zaleznosci/celow ktore sie zmienily. previous to opcjonalna lista celow aktualnych przed zmiana; jezeli previous jest None, zaden cel nie jest aktualny. Cel jest przestarzaly jezeli: nie byl w previous, sam jest zmieniony, zalezy posrednio/bezposrednio od zmienionej rzeczy, albo zalezy od cyklu w grafie. Jezeli cele tworza cykl, wszystkie w cyklu i wszystkie od nich zalezne sa przestarzale. Zwroc liste przestarzalych celow w kolejnosci kluczy w graph. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[{"app":["lib","main.c"],"lib":["util.c"],"docs":["readme.md"]}, ["util.c"]], ["app","lib","docs"]], [[{"app":["lib","main.c"],"lib":["util.c"],"docs":["readme.md"]}, ["util.c"], ["docs"]], ["app","lib"]], [[{"a":["b"],"b":["a"],"c":["a"],"d":[]}, [], ["c","d"]], ["a","b","c"]], [[{"a":["b"],"b":["src.c"],"c":["src.c"]}, ["src.c"], ["a"]], ["a","b","c"]], [[{"pkg":["core","ui"],"core":[],"ui":["theme.css"]}, ["theme.css"], ["core"]], ["pkg","ui"]], [[{"x":["missing.h"],"y":["x"]}, ["missing.h"], ["x","y"]], ["x","y"]]]
+      },
+      {
+        "func": "bankers_cents",
+        "prompt": "Napisz funkcje Python bankers_cents(s), ktora przyjmuje napis z kwota dziesietna i zwraca liczbe groszy jako int, zaokraglajac do dwoch miejsc po przecinku regula bankowa half-to-even. Przyklad: 12.345 -> 12.34 (4 parzyste), 12.355 -> 12.36 (5 nieparzyste). Obsluz opcjonalny znak + albo -, zera wiodace, brak czesci ulamkowej oraz zapis typu .5. Biale znaki na poczatku/koncu ignoruj. Jezeli format niepoprawny, zwroc None. Nie uzywaj round, float ani decimal. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["12.345"],1234], [["12.355"],1236], [["12.365"],1236], [["-1.225"],-122], [["0.0051"],1], [["007"],700], [[".5"],50], [["12.a"],null]]
+      },
+      {
+        "func": "merge_events",
+        "prompt": "Napisz funkcje Python merge_events(streams). streams to lista strumieni, kazdy strumien to lista rekordow. Kazdy rekord to lista albo krotka, kluczem sortowania jest record[0]. Kazdy strumien jest juz posortowany rosnaco po kluczu. Zwroc jeden scalony strumien. Przy rownych kluczach zachowaj stabilnosc: najpierw rekord z wczesniejszego strumienia, a w obrebie tego samego strumienia oryginalna kolejnosc. Nie modyfikuj wejscia. Nie uzywaj heapq. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[[[[[1,"a"],[3,"c"]],[[2,"b"],[4,"d"]]]],[[1,"a"],[2,"b"],[3,"c"],[4,"d"]]], [[[[[1,"a1"],[2,"a2"]],[[1,"b1"],[2,"b2"]]]],[[1,"a1"],[1,"b1"],[2,"a2"],[2,"b2"]]], [[[[],[[0,"z"]],[]]],[[0,"z"]]], [[[[[-1,"a"],[1,"a2"]],[[-1,"b"]],[[-2,"c"]]]],[[-2,"c"],[-1,"a"],[-1,"b"],[1,"a2"]]], [[[[]]],[]], [[[[[2,"x"]]]],[[2,"x"]]]]
+      },
+      {
+        "func": "normalize_cidr",
+        "prompt": "Napisz funkcje Python normalize_cidr(s), ktora waliduje i normalizuje napis IPv4 CIDR w formacie 'a.b.c.d/maska'. Oktety: liczby 0-255, bez plus/minus i bez zer wiodacych (chyba ze oktet to dokladnie '0'). Maska: liczba 0-32. Jezeli wejscie niepoprawne, zwroc None. Jezeli poprawne, zwroc adres sieci 'a.b.c.d/maska' (wyzeruj bity hosta wedlug maski). Nie uzywaj bibliotek do adresow IP. Zwroc TYLKO kod w bloku ```python```.",
+        "tests": [[["192.168.1.130/24"],"192.168.1.0/24"], [["10.0.0.1/32"],"10.0.0.1/32"], [["10.0.0.1/0"],"0.0.0.0/0"], [["01.2.3.4/24"],null], [["255.255.255.255/31"],"255.255.255.254/31"], [["256.0.0.1/8"],null], [["1.2.3/24"],null], [["1.2.3.4/33"],null]]
       }
     ],
     "bugfind": [
