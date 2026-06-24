@@ -84,6 +84,48 @@ hyped quant raz dany fair budżet okazuje się najwszechstronniejszy. qwen-coder
 efektywności (kod 5, najszybszy+najtańszy). devstral/phi4 mocne TYLKO na reasoningu, drogo
 (wolne). Ale ranking jest jednowymiarowy bez thinking-on reasoningu - patrz caveat.
 
+## REASONING: thinking OFF vs ON - ile faktycznie dodaje myślenie (n=3, /6, 2026-06-25)
+
+Twardy pomiar tezy "thinking pomaga reasoningowi". Thinking-modele (qwen36, north default;
+gpt-oss `--think=high`) zmierzone n=3 z hojnym `num_predict=6000` + detekcją ucięcia.
+
+| Model | OFF /6 | ON /6 | Δ thinking | wniosek |
+|---|---|---|---|---|
+| **qwen36-best** | 3.0 | **5.0** | **+2.0** | thinking ESENCJONALNY |
+| north-best | 4.0 | **5.0** | +1.0 | thinking pomaga |
+| gpt-oss-best | 4.0 (low) | 4.33 (high) | +0.33 | low→high marginalnie |
+| phi4-best | **5.33** | - | non-thinking | i tak najlepszy reasoner |
+| devstral-best | 5.0 | - | non-thinking | - |
+| unsloth-q4xl-best | 5.0 | - | nothink wbity | - |
+| qwen-coder-best | 3.67 | - | non-thinking | - |
+
+DWIE TWARDE KONKLUZJE:
+1. Thinking REALNIE pomaga reasoningowi, ale magnitude zależy od modelu: qwen36 +2.0 (z dna na
+   czoło), north +1.0, gpt-oss tylko +0.33 (low→high). Teza potwierdzona, ale nie jest stała.
+2. phi4 (5.33, BEZ thinking) wygrywa nawet z thinking-modelami na ich najlepszym trybie (5.0) -
+   genuinie najlepszy reasoner, myślenie mu niepotrzebne.
+
+Pomiar ujawnił też: na qwen36 q1 i gpt-oss q3 myślenie ucinało się NAWET przy 6000 tokenów
+(flaga UCIETE) - thinking na tych zagadkach jest gigantyczny; ich wynik to dolna granica.
+
+TABELA WSZECHSTRONNA POPRAWIONA (każdy model w NAJLEPSZYM trybie: kod=think off, reasoning=think on):
+
+| Model | kod med /9 | reasoning /6 (best mode) | tok/s | kWh/1M | profil |
+|---|---|---|---|---|---|
+| **qwen36-best** | **6** | **5.0** (ON) | 44.9 | 0.278 | najlepszy wszechstronny (steruj thinkingiem) |
+| **unsloth-q4xl-best** | **6** | **5.0** (off) | 38.0 | 0.329 | czołówka obu, ale wolniejszy + starsza 3.5 |
+| qwen-coder-best | 5 | 3.67 | **61.2** | **0.204** | król efektywności, słabszy reasoning |
+| gpt-oss-best | **6** | 4.33 | 51.2 | 0.244 | top kod + szybki, kod-loteria |
+| north-best | 4 | 5.0 (ON) | 51.0 | 0.245 | szybki + dobry reasoning ON |
+| phi4-best | 3 | **5.33** | 20.2 | 0.619 | najlepszy reasoner, najgorszy kod |
+| devstral-best | 4 | 5.0 | 9.8 | 1.276 | reasoner, brutalnie wolny (6x energii) |
+
+KOREKTA wcześniejszego wniosku: qwen36 NIE jest słaby na reasoningu - wyglądał tak TYLKO przez
+wymuszony thinking off (3.0). W swoim trybie (thinking on) ma 5.0. Sterując thinkingiem PER
+ZADANIE (off→kod, on→reasoning) qwen36 jest najlepszym wszechstronnym: czołówka OBU osi.
+unsloth dorównuje (6+5.0) ale jest wolniejszy, starsza wersja i NIE umie przełączać (nothink
+wbity). To finalne domknięcie tezy "thinking pomaga logice, ale psuje kod - steruj nim per zadanie".
+
 ## MACIERZ FINALNA: best configs, osie kod + speed/energia (n=3 kod + izolowany speed/energia, 2026-06-24)
 
 Kod = mediana z n=3 (fair num_predict=3000). Speed = output tok/s, izolacja, mediana z 3 (rozrzut

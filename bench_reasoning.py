@@ -70,9 +70,13 @@ def main():
         think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
     else:
         think = False if no_think else None
+    # --num-predict=N: budzet tokenow. Domyslnie 3000, ale przy thinking ON myslenie zjada
+    # budzet i ODPOWIEDZ moze sie uciac (jak w bench_coding) - dla thinking-on daj hojnie.
+    np_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--num-predict=")), None)
+    num_pred = int(np_arg) if np_arg else 3000
     models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Uzycie: python3 bench_reasoning.py [--runs N] [--no-think|--think=low] MODEL [...]")
+        print("Uzycie: python3 bench_reasoning.py [--runs N] [--no-think|--think=low] [--num-predict=N] MODEL [...]")
         sys.exit(1)
     maxs = len(PUZZLES)
 
@@ -84,14 +88,17 @@ def main():
             score, details = 0, []
             for i, (q, keys, anti, all_g) in enumerate(PUZZLES, 1):
                 try:
-                    r = generate(m, q, num_predict=3000, think=think)
+                    r = generate(m, q, num_predict=num_pred, think=think)
                     ans = r.get("response") or ""
+                    trunc = r.get("done_reason") == "length"  # odpowiedz ucieta budzetem
                 except Exception as e:
                     details.append({"q": i, "error": str(e)})
                     continue
                 ok = grade(ans, keys, anti, all_g)
                 score += 1 if ok else 0
-                details.append({"q": i, "ok": ok, "answer": ans})
+                if trunc:
+                    print(f"    [!] q{i} UCIETE (num_predict={num_pred}) - mozliwy false negative")
+                details.append({"q": i, "ok": ok, "trunc": trunc, "answer": ans})
             run_scores.append(score)
             last_details = details
             print(f"  przebieg {run_i + 1}: {score}/{maxs}")
