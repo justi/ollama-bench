@@ -4,6 +4,20 @@
 modeli (codex ×2 + grok, ~30 findings) - wszystkie krytyczne/ważne naprawione i zweryfikowane.
 Pomiary: izolacja (1 model w pamięci), warmup + mediana z 3.
 
+## KOD nie rozróżnia topów (ważne ograniczenie benchmarku)
+
+Wszystkie modele 30B+ dają kod 8/8 (łatwe) ORAZ 9/9 (trudne: sliding window, histogram,
+edit distance, coin change, trap water, word break). Nawet "hard" algorytmy LeetCode to dla
+nich rutyna - są w danych treningowych. **Auto-testowalny kod algorytmiczny NIE dyskryminuje
+topowych modeli lokalnych** - wszystkie perfekcyjne.
+
+Co BY rozróżniało (i pokazał to MEGA_BENCHMARK doktoratu): REALNY kod, nie izolowane algorytmy.
+Tam devstral dał 0/8 na 440-liniowym kontrolerze Rails (cross-file context), gpt-oss 55% - bo
+to wymagało zrozumienia kontekstu, nie odtworzenia znanego algorytmu. Różnicują: debugowanie
+realnego kodu wieloplikowego, nietypowe problemy spoza training data, analiza istniejącego kodu.
+Tego NIE da się auto-testować (wymaga human eval / realnego repo) - to ta sama lekcja co
+"benchmark != rzeczywistosc". W tabelach kolumna "kod" jest więc max u wszystkich i nie sortuje.
+
 ## TABELA MASTER - wszystkie modele, wszystkie osie (z prądem i czasem)
 
 Sortowanie po szybkości. Prąd/czas liczone dla OUTPUT tokenów (widoczna odpowiedź, nie thinking).
