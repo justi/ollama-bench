@@ -51,6 +51,40 @@ Ollama 3.6 - ani lepszy, ani gorszy. Potrójna lekcja "mierz, nie zakładaj": (1
 (2) konfiguracja modelu (thinking), (3) parametry benchmarku (num_predict) i liczba prób (n)
 potrafią każda z osobna całkowicie zmyć ranking. Sam benchmark trzeba audytować jak mierzony obiekt.
 
+## MACIERZ FINALNA: best configs, wszystkie osie (n=3 kod + izolowany speed/energia, 2026-06-24)
+
+Kod = mediana z n=3 (fair num_predict=3000). Speed = output tok/s, izolacja, mediana z 3 (rozrzut
+0.1-4 tok/s - throughput stabilny, cała zmienność jest w jakości kodu). Energia = kWh/1M tokenów
+output, moc 45 W (szacunek M1 Max; ranking odporny - różnice z tok/s, nie z mocy).
+
+| Model | kod med (zakres) | tok/s | kWh/1M | h/1M | charakterystyka |
+|---|---|---|---|---|---|
+| **qwen-coder-best** | 5 (4-5) | **61.2** | **0.204** | 4.5 | król efektywności: najszybszy + najtańszy + stabilny |
+| gpt-oss-best | **6** (4-7) | 51.2 | 0.244 | 5.4 | top kod ale loteria; szybki/tani z trójki |
+| north-best | 4 (3-4) | 51.0 | 0.245 | 5.4 | szybki, ale kod słabszy |
+| **qwen36-best** | **6** (6-7) | 44.9 | 0.278 | 6.2 | najlepszy kod STABILNY, średni speed |
+| unsloth-q4xl-best | **6** (5-7) | 38.0 | 0.329 | 7.3 | top kod, wolniejszy + starsza 3.5 |
+| phi4-best | 3 (2-5) | 20.2 | 0.619 | 13.8 | wolny + kod loteria - słaby |
+| devstral-best | 4 (4-4) | 9.8 | 1.276 | 28.3 | najwolniejszy, 6x energii qwen-codera |
+
+ROZSTRZYGNIĘCIE potrójnego remisu na kodzie (qwen36 = unsloth = gpt-oss, mediana 6):
+- gpt-oss: najszybszy i najtańszy z trójki, ale kod to loteria (4-7).
+- qwen36: najpewniejszy kod (6-7), średni speed - najlepszy gdy zależy na powtarzalności.
+- unsloth: najwolniejszy z trójki + starsza wersja 3.5 - brak powodu by wybierać go nad qwen36.
+
+WERDYKT PRAKTYCZNY:
+- **qwen-coder = najlepszy ogólnie**: 61 tok/s, 0.204 kWh, stabilny; kod 5 to tylko -1 od szczytu.
+  Top-tier płaci za 1 punkt kodu 20-50% więcej energii i czasu.
+- **qwen36 = najwyższy PEWNY kod** (6-7). **gpt-oss = sufit kodu + szybkość, jeśli akceptujesz wariancję.**
+- devstral tylko dla niszy reasoningu (6x energii!); phi4 wypadł słabo (wolny + loteria kodu).
+
+BUG ZNALEZIONY W TRAKCIE (bench_speed.py): zmienna `think` w pętli main() była nadpisywana
+przez kod komunikatu (`think = ""`), więc po PIERWSZYM modelu wszystkie kolejne dostawały
+`"think": ""` → HTTP 400 i `BLAD`. Pierwszy model w każdym przebiegu był OK, reszta padała.
+Oznacza to, że wcześniejsze multi-modelowe pomiary speed (poza pierwszym modelem) były
+niewiarygodne. Fix: rename na `think_note`. Po naprawie wszystkie 7 modeli zmierzone.
+Kolejna lekcja: kolizja nazw zmiennych cicho psuła pomiar - audytuj narzędzie, nie tylko wynik.
+
 ## KOD STANDARDOWY nie rozróżnia topów (łatwe i hard - wszyscy max)
 
 Wszystkie modele 30B+ dają kod 8/8 (łatwe) ORAZ 9/9 (trudne: sliding window, histogram,

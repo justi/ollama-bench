@@ -114,12 +114,14 @@ def main():
             continue
         rows.append(row)
         warn = "" if row.get("isolated") else f"  [!] IZOLACJA NARUSZONA (w pamieci: {row.get('loaded_during')})"
-        think = ""
+        # UWAGA: osobna nazwa (think_note), NIE 'think' - nadpisanie parametru petli psulo
+        # kolejne modele ("think":"" -> HTTP 400 u wszystkich po pierwszym).
+        think_note = ""
         if row.get("is_thinking"):
-            think = (f"  [!] THINKING: tok/s zawiera tokeny myslenia, nie tylko output "
-                     f"(response {row['response_chars']} zn / thinking {row['thinking_chars']} zn)")
+            think_note = (f"  [!] THINKING: tok/s zawiera tokeny myslenia, nie tylko output "
+                          f"(response {row['response_chars']} zn / thinking {row['thinking_chars']} zn)")
         print(f"gen {row['gen_tok_s']} tok/s (mediana z {row['gen_tok_s_runs']}) | "
-              f"prompt {row['prompt_tok_s']} tok/s | total {row['total_s']} s{warn}{think}")
+              f"prompt {row['prompt_tok_s']} tok/s | total {row['total_s']} s{warn}{think_note}")
 
     print("\n== PODSUMOWANIE (mediana z 3, izolacja) ==")
     print(f"{'model':<30}{'output tok/s':>13}{'eval tok/s':>12}  uwaga")

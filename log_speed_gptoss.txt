@@ -1,0 +1,9 @@
+== bench_speed [maly prompt] : warmup + mediana z 3 przebiegow ==
+
+  gpt-oss-best ... gen 53.6 tok/s (mediana z [53.6, 53.6, 53.5]) | prompt 1670.0 tok/s | total 5.96 s  [!] THINKING: tok/s zawiera tokeny myslenia, nie tylko output (response 985 zn / thinking 47 zn)
+
+== PODSUMOWANIE (mediana z 3, izolacja) ==
+model                          output tok/s  eval tok/s  uwaga
+gpt-oss-best                           51.2        53.6  thinking: eval_tok_s zawiera myslenie, output nizszy
+
+Zapisano: results_speed.json

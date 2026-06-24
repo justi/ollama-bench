@@ -1,0 +1,19 @@
+== bench_speed [maly prompt] : warmup + mediana z 3 przebiegow ==
+
+  qwen-coder-best ... gen 61.4 tok/s (mediana z [61.4, 61.5, 61.4]) | prompt 2773.2 tok/s | total 4.99 s
+  phi4-best ... BLAD: HTTP Error 400: Bad Request
+  devstral-best ... BLAD: HTTP Error 400: Bad Request
+  north-best ... BLAD: HTTP Error 400: Bad Request
+  qwen36-best ... BLAD: HTTP Error 400: Bad Request
+  unsloth-q4xl-best ... BLAD: HTTP Error 400: Bad Request
+
+== PODSUMOWANIE (mediana z 3, izolacja) ==
+model                          output tok/s  eval tok/s  uwaga
+qwen-coder-best                        61.4        61.4  
+phi4-best                              BLAD
+devstral-best                          BLAD
+north-best                             BLAD
+qwen36-best                            BLAD
+unsloth-q4xl-best                      BLAD
+
+Zapisano: results_speed.json
