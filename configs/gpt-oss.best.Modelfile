@@ -1,5 +1,7 @@
-# gpt-oss:20b - best config (thinking HARDCODED - nie wylaczysz, tylko --think=low do kodu)
+# gpt-oss:20b - best config KODOWY (thinking HARDCODED - nie wylaczysz, tylko --think=low do kodu)
 # temp 0.3 (NIE 0 - 100% petli!), num_predict 3000 (thinking nie ucina odpowiedzi)
+# reasoning_effort NIE jest PARAMETER Modelfile - steruj przez --think=low|medium|high (CLI/API)
+# DO REASONINGU: uzyj temp 1.0 + --think (default medium), np. ollama run gpt-oss-best --think=high
 # ollama create gpt-oss-best -f configs/gpt-oss.best.Modelfile
 FROM gpt-oss:20b
 PARAMETER temperature 0.3

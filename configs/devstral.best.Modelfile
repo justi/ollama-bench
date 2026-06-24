@@ -1,6 +1,8 @@
-# devstral:24b - best config (Mistral, BEZ thinking)
+# devstral-small-2:24b-fast - best config (Mistral, BEZ thinking)
+# UWAGA: bazą jest faktycznie benchmarkowany tag devstral-small-2:24b-fast (default num_ctx 65536,
+# temp 0.15), NIE publiczny devstral:24b (inny artefakt, 128K). Tak testowano w benchmarku.
 # ollama create devstral-best -f configs/devstral.best.Modelfile
-FROM devstral:24b
+FROM devstral-small-2:24b-fast
 PARAMETER temperature 0.2
 PARAMETER top_p 0.9
 PARAMETER num_ctx 8192
