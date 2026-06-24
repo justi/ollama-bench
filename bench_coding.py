@@ -14,9 +14,33 @@ Kazda funkcja jest exec w osobnym namespace, ale to nadal wykonanie kodu z LLM.
 import ast
 import json
 import re
+import signal
 import sys
+from contextlib import contextmanager
 
 from _common import generate, load_prompts
+
+
+class _Timeout(Exception):
+    pass
+
+
+@contextmanager
+def _time_limit(seconds):
+    """Twardy limit czasu na wykonanie (SIGALRM). Modele bywaja generuja kod z nieskonczona
+    petla (while True bez wyjscia) - bez tego exec/wywolanie funkcji wisi w nieskonczonosc na
+    100% CPU (realny przypadek: unsloth-q4xl zawiesil benchmark na 80+ min CPU). Dziala w
+    glownym watku na Unix. Uwaga: kod z bare 'except:' moze zlapac _Timeout - dla zwyklej
+    petli (bez except) SIGALRM przechodzi i jest lapany wyzej."""
+    def handler(signum, frame):
+        raise _Timeout()
+    old = signal.signal(signal.SIGALRM, handler)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, old)
 
 
 def extract_code(text):
@@ -50,11 +74,17 @@ def _norm(x):
     return x
 
 
-def run_generated(code, func_name, tests):
-    """Exec kodu i sprawdzenie funkcji na przypadkach. Zwraca (ok, komunikat)."""
+def run_generated(code, func_name, tests, timeout_s=5):
+    """Exec kodu i sprawdzenie funkcji na przypadkach. Zwraca (ok, komunikat).
+
+    Kazdy exec i kazde wywolanie funkcji ma twardy timeout (petla w kodzie modelu = oblany
+    przypadek, nie zawieszenie benchmarku)."""
     ns = {}
     try:
-        exec(code, ns)
+        with _time_limit(timeout_s):
+            exec(code, ns)
+    except _Timeout:
+        return False, f"timeout {timeout_s}s w exec (petla w kodzie modelu)"
     except Exception as e:
         return False, f"exec error: {type(e).__name__}: {e}"
     fn = ns.get(func_name)
@@ -62,7 +92,10 @@ def run_generated(code, func_name, tests):
         return False, f"brak funkcji {func_name}"
     for args, expected in tests:
         try:
-            got = fn(*args)
+            with _time_limit(timeout_s):
+                got = fn(*args)
+        except _Timeout:
+            return False, f"timeout {timeout_s}s na {args} (petla w kodzie modelu)"
         except Exception as e:
             return False, f"runtime {type(e).__name__} na {args}"
         if _norm(got) != _norm(expected):

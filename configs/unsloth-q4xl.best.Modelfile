@@ -1,0 +1,15 @@
+# Qwen3.5-35B-A3B unsloth Dynamic Q4_K_XL (gurubot repack, thinking WBITY OFF, bez vision)
+# Cel: porownanie quant+wersja vs nasz qwen3.6-best (Ollama quant, 3.6). UWAGA: zmienia naraz
+# DWIE zmienne (wersja 3.5 vs 3.6 ORAZ quant unsloth-Q4_K_XL vs Ollama) - wynik conflated.
+# Params unsloth identyczne jak qwen36-best (temp 0.7, top_p 0.8, top_k 20, min_p 0, pp 1.5).
+# Thinking juz wylaczony w modelu (nothink repack), wiec --think=false zbedne ale nieszkodliwe.
+# ollama create unsloth-q4xl-best -f configs/unsloth-q4xl.best.Modelfile
+FROM gurubot/Qwen3.5-35B-A3B-GGUF-unsloth-nothink:UD-Q4_K_XL
+PARAMETER temperature 0.7
+PARAMETER top_p 0.8
+PARAMETER top_k 20
+PARAMETER min_p 0
+PARAMETER presence_penalty 1.5
+PARAMETER repeat_penalty 1.0
+PARAMETER num_ctx 8192
+PARAMETER num_predict 3000
