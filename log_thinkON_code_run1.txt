@@ -1,0 +1,40 @@
+
+== north-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     TR!  [UCIETE num_predict=3000] brak funkcji parse_csv_line
+    apply_payments     OK   
+    coalesce_spans     OK   
+    fraction_pipeline  OK   
+    tokenize_query     TR!  [UCIETE num_predict=3000] brak funkcji tokenize_query
+    stale_targets      TR!  [UCIETE num_predict=3000] brak funkcji stale_targets
+    bankers_cents      TR!  [UCIETE num_predict=3000] brak funkcji bankers_cents
+    merge_events       OK   
+    normalize_cidr     OK   
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              OK 
+  SCORE: 8/12  (kod 5/9, bugi 3/3)
+
+== qwen36-best ==
+  [generacja kodu - auto-test]
+    parse_csv_line     TR!  [UCIETE num_predict=3000] brak funkcji parse_csv_line
+    apply_payments     TR!  [UCIETE num_predict=3000] brak funkcji apply_payments
+    coalesce_spans     TR!  [UCIETE num_predict=3000] brak funkcji coalesce_spans
+    fraction_pipeline  TR!  [UCIETE num_predict=3000] brak funkcji fraction_pipeline
+    tokenize_query     TR!  [UCIETE num_predict=3000] brak funkcji tokenize_query
+    stale_targets      TR!  [UCIETE num_predict=3000] brak funkcji stale_targets
+    bankers_cents      TR!  [UCIETE num_predict=3000] brak funkcji bankers_cents
+    merge_events       TR!  [UCIETE num_predict=3000] brak funkcji merge_events
+    normalize_cidr     TR!  [UCIETE num_predict=3000] brak funkcji normalize_cidr
+  [bug finding]
+    bug 1              OK 
+    bug 2              OK 
+    bug 3              OK 
+  SCORE: 3/12  (kod 0/9, bugi 3/3)
+
+== PODSUMOWANIE (jakosc kodowa) ==
+  north-best                     8/12  (kod 5/9, bugi 3/3)
+  qwen36-best                    3/12  (kod 0/9, bugi 3/3)
+
+Zapisano: results_coding.json
