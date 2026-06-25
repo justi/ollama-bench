@@ -1,10 +1,11 @@
-# gemma4:e4b - best config (Google Gemma 3n E4B, NO thinking mode)
-# Small model (~4B effective). Temp lowered from Gemma's native 1.0 to 0.7 for
-# reasoning stability (same lesson as phi4: native high temp = chaos on reasoning).
-# top_k 64 / top_p 0.95 are Google's recommended Gemma sampling params.
+# gemma4:e4b - best config (Google Gemma 4 E4B, thinking-capable, run non-thinking)
+# Gemma 4 E4B: 8B total weights, ~4.5B effective (MatFormer), Q4_K_M, 128K native context.
+# temp 1.0 / top_k 64 / top_p 0.95 = Google/Unsloth recommended sampling (HF: high temp best
+# for coding). E4B thinking is OFF by default (enable via <|think|> in system prompt).
+# Measured: temp 1.0 and an earlier (wrong) 0.7 give identical benchmark scores here.
 # ollama create gemma-best -f configs/gemma.best.Modelfile
 FROM gemma4:e4b
-PARAMETER temperature 0.7
+PARAMETER temperature 1.0
 PARAMETER top_k 64
 PARAMETER top_p 0.95
 PARAMETER num_ctx 8192

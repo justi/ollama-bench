@@ -112,22 +112,28 @@ but weak on non-trivial code (to be verified with no-think).
 phi4 at its native (higher) temperature is chaotic on reasoning (range 4); temp 0.7 gives
 stability (range 0, reasoning 5.0). Small (9 GB), good quality. No thinking.
 
-## gemma4:e4b - Google Gemma 3n E4B, no thinking
+## gemma4:e4b - Google Gemma 4 E4B, thinking-capable (off by default)
 
 | | default | best |
 |---|---|---|
-| temperature | (native 1.0) | **0.7** |
+| temperature | 1.0 | **1.0** |
 | top_k | 64 | 64 |
 | top_p | 0.95 | 0.95 |
-| num_ctx | (auto) | 8192 |
+| num_ctx | (native 128K) | 8192 |
 
-Gemma 3n E4B (~4B effective). Temp lowered from Gemma's native 1.0 to 0.7 for reasoning
-stability (same lesson as phi4); top_k 64 / top_p 0.95 are Google's recommended sampling.
-Punches far above its size on BOTH axes. Reasoning: matches qwen36 (35B) in Polish (5.5/6),
-beats phi4/devstral/qwen-coder, nearly language-balanced (PL 5.5 / EN 5.8). Code: expert
-5/9 stable (n=3, num_predict=3000), tying qwen-coder (30B) and beating north/devstral/phi4;
-hard code 6/6, default 8/8 (PL=EN, code is language-insensitive). No thinking mode. Also
-serves as the neutral cross-family judge for grade_reasoning.py.
+Gemma 4 E4B: 8B total weights, ~4.5B effective (MatFormer activates a sub-network), Q4_K_M,
+128K native context. temp 1.0 / top_k 64 / top_p 0.95 are Google/Unsloth's recommended sampling
+(HF: high temp is best for coding). Thinking is OFF by default for E4B (enabled via a <|think|>
+token in the system prompt); we run it non-thinking. Measured: temp 1.0 vs an earlier (wrong)
+0.7 give IDENTICAL scores here - reasoning PL 5.50 / EN 5.80, code 5/5 default, 5/9 expert,
+7/7 mutated - so the conclusions are robust to temperature.
+
+Strong for its compute. Reasoning: PL 5.5 / EN 5.8, beating phi4/devstral/qwen-coder. Code:
+expert 5/9 (n=3), default 5/5, hard 6/6, mutated 7/7 (ties qwen36, beats the rest). Note on the
+"small model" framing: by ACTIVE compute gemma (~4.5B effective) is comparable to or larger than
+the qwen MoEs (qwen36 35b-a3b and qwen-coder 30b are ~3B active), so matching them is expected;
+the real efficiency win is beating the DENSE phi4 (14B) and devstral (24B) at lower active cost.
+Also serves as the neutral cross-family judge for grade_reasoning.py.
 
 ## qwen3.6:35b-a3b - Qwen3.6 35B-A3B (general), THINKING
 
