@@ -6,9 +6,11 @@ To jest historia o tym, że benchmark to nie tylko mierzony obiekt. To też narz
 
 ## Odwrócenie pierwsze: zła konfiguracja
 
-north-mini-code wypadł na 1/9 w trudnym kodzie - ostatni, daleko za stawką. Wniosek narzucał się sam: świetny w szybkości, beznadziejny w nietrywialnym kodzie.
+qwen36 to najlepszy koder trudnych zadań w stawce - 6 na 9. Chyba że włączysz mu thinking. Wtedy spada na 0 na 9: ostatni, zero rozwiązanych zadań.
 
-Problem: testowałem go z włączonym thinkingiem. A thinking u modeli tego typu psuje kod - rozumowanie zjada odpowiedź. Po przełączeniu na `--no-think` north dał 4/9: środek stawki, nie dno. Te 1/9 nie mówiło nic o modelu. Mówiło o mojej konfiguracji.
+Problem nie był w modelu - był w jednym przełączniku. qwen36 z włączonym thinkingiem generuje tak długie rozumowanie, że zjada cały budżet tokenów, zanim dojdzie do kodu. Kod albo ląduje w ukrytym polu myślenia, albo jest ucinany w połowie - benchmark widzi pustkę, nie rozwiązanie (flaga ucięcia zapaliła się na wszystkich dziewięciu zadaniach). Po przełączeniu na `--no-think` ten sam model pisze kod od razu: 6/9, czoło stawki. To 0/9 nie mówiło nic o zdolności modelu. Mówiło o mojej konfiguracji.
+
+Co ciekawe, rozmiar szkody zależy od tego, jak gadatliwie model myśli. north, który rozumuje oszczędnie, z thinkingiem i bez wypada prawie tak samo (4-5/9 vs 4/9). qwen36, który myśli rozwlekle, kolabuje z 6 do 0. Ta sama zła nastawa, dwa modele, zupełnie różny skutek.
 
 ## Odwrócenie drugie: ucięty budżet
 

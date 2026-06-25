@@ -26,6 +26,21 @@ Setup: każdy model na SWOIM best configu + poprawne sterowanie thinking (qwen36
 
 (deepseek-r1 usunięty przed n=3: najwolniejszy ~4 tok/s + dno 4/9 + bez wygrywającej osi.)
 
+POMIAR thinking ON na zadaniach expert (n=3, num_predict=3000) - czemu cały ranking kodu jest z
+`--no-think`: bo thinking ON na kodzie kolabuje przez UCIĘCIE. Myślenie zjada budżet tokenów,
+zanim model dojdzie do kodu. Zmierzone:
+
+| Model | kod thinking ON /9 | kod no-think /9 | mechanizm |
+|---|---|---|---|
+| **qwen36-best** | **0** (0,0,0) | 6 | całość ucięta - `TR!` na ~wszystkich 9 zadaniach (qwen36 myśli rozwlekle) |
+| north-best | 4-5 (4,5,5) | 4 | north myśli oszczędnie → część kodu mieści się w budżecie |
+
+Wniosek: thinking psuje kod przez TRUNCATION, a SKALA efektu zależy od gadatliwości myślenia
+modelu - qwen36 (rozwlekły) kolabuje 6→0, north (oszczędny) ledwo drgnął (4→5, w granicach szumu).
+To też wyjaśnia, czemu wczesny "north 1/9" (mixed config, num_predict=1500) był jeszcze niższy:
+mniejszy budżet = jeszcze więcej ucięć. "north 1/9" nie był więc czystym pomiarem ZDOLNOŚCI -
+mierzył truncation przy ciasnym budżecie. Dlatego ranking zdolności kodu mierzymy z thinking OFF.
+
 ODKRYCIE 1 - num_predict=1500 zaniżał gadatliwe modele (false-negative przez ucięcie):
 - Pierwotny benchmark hardcodował `num_predict=1500`. Dla zwięzłych modeli OK (kończą się
   naturalnie, `done_reason=stop` poniżej budżetu), ale unsloth jest gadatliwy (3500-6000 znaków,
