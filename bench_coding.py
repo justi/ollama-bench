@@ -117,6 +117,7 @@ def main():
     no_think = "--no-think" in args  # disables thinking for thinking-models (qwen3.6, deepseek-r1, north)
     hard = "--hard" in args  # hard LeetCode algorithms (sliding window, histogram, DP)
     expert = "--expert" in args  # nontrivial, edge-case, strict specification (separates models)
+    mutated = "--mutated" in args  # LeetCode classic + spec mutations (memorized solution = wrong answer)
     # --think=VALUE: explicit thinking level. gpt-oss CANNOT be disabled (harmony), only low|medium|high;
     # Qwen-distill: false works. Mapping: false->False, none/default->None, rest (low/high)->string.
     think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
@@ -132,10 +133,12 @@ def main():
     gen_np = int(np_arg) if np_arg else 1500
     models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Usage: python3 bench_coding.py [--no-think] [--hard|--expert] [--num-predict=N] MODEL [...]")
+        print("Usage: python3 bench_coding.py [--no-think] [--hard|--expert|--mutated] [--num-predict=N] MODEL [...]")
         sys.exit(1)
     C = load_prompts()["coding"]
-    gen_tasks = C["generate_expert"] if expert else (C["generate_hard"] if hard else C["generate"])
+    gen_tasks = (C["generate_mutated"] if mutated else
+                 C["generate_expert"] if expert else
+                 C["generate_hard"] if hard else C["generate"])
     bug_tasks = C["bugfind"]
     total = len(gen_tasks) + len(bug_tasks)
 
