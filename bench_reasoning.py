@@ -35,7 +35,10 @@ def main():
     no_think = "--no-think" in args
     think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
     if think_arg is not None:
-        think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
+        think = (False if think_arg == "false"
+                 else True if think_arg in ("true", "on")  # enable thinking (e.g. gemma4 E4B)
+                 else None if think_arg in ("none", "default")
+                 else think_arg)
     else:
         think = False if no_think else None
     np_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--num-predict=")), None)

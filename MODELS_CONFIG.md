@@ -123,10 +123,13 @@ stability (range 0, reasoning 5.0). Small (9 GB), good quality. No thinking.
 
 Gemma 4 E4B: 8B total weights, ~4.5B effective (MatFormer activates a sub-network), Q4_K_M,
 128K native context. temp 1.0 / top_k 64 / top_p 0.95 are Google/Unsloth's recommended sampling
-(HF: high temp is best for coding). Thinking is OFF by default for E4B (enabled via a <|think|>
-token in the system prompt); we run it non-thinking. Measured: temp 1.0 vs an earlier (wrong)
-0.7 give IDENTICAL scores here - reasoning PL 5.50 / EN 5.80, code 5/5 default, 5/9 expert,
-7/7 mutated - so the conclusions are robust to temperature.
+(HF: high temp is best for coding). Thinking is OFF by default for E4B (enable with think=true /
+a <|think|> system-prompt token). Measured: temp 1.0 vs an earlier (wrong) 0.7 give IDENTICAL
+scores - reasoning PL 5.50 / EN 5.80, code 5/5 default, 5/9 expert, 7/7 mutated - robust to temp.
+Thinking ON helps reasoning, like the other thinking models: PL 5.50 -> 6.00 (6/6 x3, n=3), EN
+unchanged (already near ceiling). So best reasoning mode = thinking ON (steer per task: off for
+code, on for reasoning). Speed on M1 Max: 48.9 tok/s (median of 3, isolated) = 0.256 kWh/1M -
+mid-pack (faster than qwen36, slower than gpt-oss/north; not the efficiency king, that is qwen-coder).
 
 Strong for its compute. Reasoning: PL 5.5 / EN 5.8, beating phi4/devstral/qwen-coder. Code:
 expert 5/9 (n=3), default 5/5, hard 6/6, mutated 7/7 (ties qwen36, beats the rest). Note on the
