@@ -123,9 +123,11 @@ stability (range 0, reasoning 5.0). Small (9 GB), good quality. No thinking.
 
 Gemma 3n E4B (~4B effective). Temp lowered from Gemma's native 1.0 to 0.7 for reasoning
 stability (same lesson as phi4); top_k 64 / top_p 0.95 are Google's recommended sampling.
-Punches far above its size: on the reasoning set it matches qwen36 (35B) in Polish (5.5/6)
-and beats phi4/devstral/qwen-coder. Nearly language-balanced (PL 5.5 / EN 5.8). No thinking
-mode. Also serves as the neutral cross-family judge for grade_reasoning.py.
+Punches far above its size on BOTH axes. Reasoning: matches qwen36 (35B) in Polish (5.5/6),
+beats phi4/devstral/qwen-coder, nearly language-balanced (PL 5.5 / EN 5.8). Code: expert
+5/9 stable (n=3, num_predict=3000), tying qwen-coder (30B) and beating north/devstral/phi4;
+hard code 6/6, default 8/8 (PL=EN, code is language-insensitive). No thinking mode. Also
+serves as the neutral cross-family judge for grade_reasoning.py.
 
 ## qwen3.6:35b-a3b - Qwen3.6 35B-A3B (general), THINKING
 
