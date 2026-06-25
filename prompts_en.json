@@ -1,0 +1,171 @@
+{
+  "_opis": "All prompts used by the benchmarks. Edit here - the scripts read from this file.",
+
+  "speed_small": "Write an essay of about 250 words about why it is worth drinking water every day. Write fluently, without bullet points.",
+
+  "speed_big": {
+    "_opis": "Large prompt (~12k tokens) simulating an agent's tool context: prefix + block*repeat + suffix.",
+    "prefix": "Below is extensive documentation of the tools available to the agent. Read it in full, then answer the question at the end.\n\n",
+    "block": "TOOL: read_file(path) - reads a file from disk and returns its content. TOOL: write_file(path, content) - writes content to a file. TOOL: run_bash(cmd) - runs a shell command and returns the output. TOOL: search(query) - searches the repository by pattern. Each tool returns JSON with a result or error field.\n",
+    "_kalibracja": "block ~75 tokens; repeat 160 -> ~12k tokens (target like an OpenCode-like prompt). 500 gave ~40k and inflated the times.",
+    "repeat": 160,
+    "suffix": "\nQUESTION: summarize in 3 sentences what the run_bash tool does."
+  },
+
+  "numpredict_task": "Consider a reverse cause-and-effect chain. A language model achieved a poor AUC score on the test set. List at least two alternative causal paths (from effect to cause), for each step mark whether the cause is necessary or sufficient, and indicate which path is the most likely. Present this as a table with justification.",
+
+  "reasoning": [
+    {
+      "q": "Mark has as many brothers as sisters. His sister Anna has twice as many brothers as sisters. How many boys and how many girls are in the family? Give just the numbers.",
+      "all": [
+        ["4 boys", "four boys", "boys.{0,8}4", "4.{0,6}boys"],
+        ["3 girls", "three girls", "girls.{0,8}3", "3.{0,6}girls"]
+      ]
+    },
+    {
+      "q": "On an island there are knights (who always tell the truth) and knaves (who always lie). You meet a person A who says: 'I am a knave'. Who is A? Explain briefly.",
+      "keys": ["cannot.*exist", "contradiction", "paradox", "impossible", "neither (a )?knight"]
+    },
+    {
+      "q": "You have a transport problem: a wolf, a goat and a cabbage, and a boat that holds you and one item. What is the minimum number of river crossings needed? Give the number.",
+      "keys": ["\\b7\\b", "seven"]
+    },
+    {
+      "q": "Monty Hall: there are 3 doors, behind one a car. You pick door 1. The host opens door 3 (empty). Is it worth switching your choice to door 2? Give the decision and the probability.",
+      "keys": ["2/3", "66", "67", "yes.{0,15}switch", "should switch", "worth switching", "switch to door 2"],
+      "anti": ["does not change.{0,25}probab", "equal probab", "no difference", "doesn.?t matter", "same probab", "not worth switch", "don.?t switch", "no need to switch", "stick with (the )?(original|first|door 1)"]
+    },
+    {
+      "q": "The number 76 is the ASCII code of which capital letter of the Latin alphabet? Give just the letter.",
+      "keys": ["\\bL\\b"]
+    },
+    {
+      "q": "Reverse the word HELLO, take the third letter of the result. What letter is it? Give just the letter.",
+      "keys": ["\\bL\\b"]
+    }
+  ],
+
+  "coding": {
+    "_opis": "Code quality: function generation (auto-tested by execution) + bug finding.",
+    "generate": [
+      {
+        "func": "is_prime",
+        "prompt": "Write a Python function named is_prime(n) returning True if n is a prime number, otherwise False. Return ONLY the code in a ```python``` block.",
+        "tests": [[[2], true], [[3], true], [[4], false], [[1], false], [[0], false], [[17], true], [[15], false]]
+      },
+      {
+        "func": "fibonacci",
+        "prompt": "Write a Python function fibonacci(n) returning the n-th term of the Fibonacci sequence, where fibonacci(0)=0 and fibonacci(1)=1. Return ONLY the code in a ```python``` block.",
+        "tests": [[[0], 0], [[1], 1], [[2], 1], [[10], 55], [[15], 610]]
+      },
+      {
+        "func": "merge_intervals",
+        "prompt": "Write a Python function merge_intervals(intervals) that merges overlapping intervals. The input is a list of pairs [start, end]. Return a list of merged intervals sorted ascending by start. Return ONLY the code in a ```python``` block.",
+        "tests": [[[[[1,3],[2,6],[8,10],[15,18]]], [[1,6],[8,10],[15,18]]], [[[[1,4],[4,5]]], [[1,5]]]]
+      },
+      {
+        "func": "longest_unique",
+        "prompt": "Write a Python function longest_unique(s) returning the length (int) of the longest substring without repeating characters. Return ONLY the code in a ```python``` block.",
+        "tests": [[["abcabcbb"], 3], [["bbbbb"], 1], [["pwwkew"], 3], [[""], 0]]
+      },
+      {
+        "func": "count_vowels",
+        "prompt": "Write a Python function count_vowels(s) counting the vowels (a, e, i, o, u) in a string, ignoring letter case. Return ONLY the code in a ```python``` block.",
+        "tests": [[["hello"], 2], [["HELLO"], 2], [["xyz"], 0], [["AEIOU"], 5]]
+      }
+    ],
+    "generate_hard": [
+      {
+        "func": "longest_substring",
+        "prompt": "Write a Python function longest_substring(s) returning the LENGTH of the longest substring without repeating characters (sliding window). Return ONLY the code in a ```python``` block.",
+        "tests": [[["abcabcbb"], 3], [["pwwkew"], 3], [["tmmzuxt"], 5], [["bbbbb"], 1], [[""], 0], [["dvdf"], 3]]
+      },
+      {
+        "func": "largest_rectangle",
+        "prompt": "Write a Python function largest_rectangle(heights) returning the AREA of the largest rectangle in a histogram of bars with heights heights (list of int). Return ONLY the code in a ```python``` block.",
+        "tests": [[[[2,1,5,6,2,3]], 10], [[[2,4]], 4], [[[1,1]], 2], [[[5]], 5], [[[6,2,5,4,5,1,6]], 12]]
+      },
+      {
+        "func": "edit_distance",
+        "prompt": "Write a Python function edit_distance(a, b) returning the Levenshtein distance (min. insert/delete/replace operations) between a and b. Return ONLY the code in a ```python``` block.",
+        "tests": [[["horse","ros"], 3], [["intention","execution"], 5], [["","abc"], 3], [["abc","abc"], 0], [["sunday","saturday"], 3]]
+      },
+      {
+        "func": "coin_change",
+        "prompt": "Write a Python function coin_change(coins, amount) returning the min. number of coins (from the list coins, each usable multiple times) summing to amount, or -1 if impossible. Return ONLY the code in a ```python``` block.",
+        "tests": [[[[1,2,5],11], 3], [[[2],3], -1], [[[1],0], 0], [[[1,2,5],5], 1], [[[2,5,10,1],27], 4]]
+      },
+      {
+        "func": "trap_water",
+        "prompt": "Write a Python function trap_water(height) returning the amount of water trapped between bars with heights height (list of int) after rain. Return ONLY the code in a ```python``` block.",
+        "tests": [[[[0,1,0,2,1,0,1,3,2,1,2,1]], 6], [[[4,2,0,3,2,5]], 9], [[[1,1]], 0], [[[5,4,1,2]], 1]]
+      },
+      {
+        "func": "word_break",
+        "prompt": "Write a Python function word_break(s, words) returning True if the string s can be fully split into words from the list words (each usable multiple times). Return ONLY the code in a ```python``` block.",
+        "tests": [[["leetcode",["leet","code"]], true], [["catsandog",["cats","dog","sand","and","cat"]], false], [["applepenapple",["apple","pen"]], true], [["aaaaaaa",["aaaa","aaa"]], true]]
+      }
+    ],
+    "generate_expert": [
+      {
+        "func": "parse_csv_line",
+        "prompt": "Write a Python function parse_csv_line(line) returning a list of fields. The separator is a comma, empty fields are allowed. If a field STARTS with a quote character, it is quoted: a pair of two quotes denotes a literal quote, the quoting ends at the first non-doubled quote, and characters after the closing quote up to the comma belong to the same field. If a field does NOT start with a quote, all quotes are ordinary characters. Do not use the csv module. Return ONLY the code in a ```python``` block.",
+        "tests": [[[""], [""]], [[","], ["", ""]], [["a,,b,"], ["a", "", "b", ""]], [["a,\"b,c\",d"], ["a", "b,c", "d"]], [["\"\"\"\" ,x"], ["\" ", "x"]], [[" \"a\",b"], [" \"a\"", "b"]], [["\"a\"tail,\"b\"\"c\""], ["atail", "b\"c"]]]
+      },
+      {
+        "func": "apply_payments",
+        "prompt": "Write a Python function apply_payments(invoices, payments) where invoices are invoice balances (cents), payments are payments. Each payment in turn pays off the earliest invoice with a POSITIVE balance. If a payment exceeds the sum of remaining balances, the unused remainder of that payment goes to overpayments; if it is used up entirely, its overpayment is 0. Do not modify the input lists. Return a pair (tuple) of two elements: the list of final invoice balances AND the list of overpayments for each payment. Return ONLY the code in a ```python``` block.",
+        "tests": [[[[100, 200], [50]], [[50, 200], [0]]], [[[100, 200], [150]], [[0, 150], [0]]], [[[100, 200], [500]], [[0, 0], [200]]], [[[], [10, 0]], [[], [10, 0]]], [[[0, 100, 0, 50], [30, 80]], [[0, 0, 0, 40], [0, 0]]], [[[40, 60], [0, 30, 100]], [[0, 0], [0, 0, 30]]], [[[10], [3, 3, 3, 3]], [[0], [0, 0, 0, 2]]]]
+      },
+      {
+        "func": "coalesce_spans",
+        "prompt": "Write a Python function coalesce_spans(spans, gap=0) where spans is a list of triples (label, start, end), start<=end, gap>=0. Merge intervals ONLY within the same label. Sort the intervals of each label by (start, end). Merge adjacent ones when next_start <= current_end + gap; the merged interval has the start of the first and an end equal to the maximum of the ends. Zero-length intervals (start==end) are valid and participate in merging. Return a list of triples sorted first by label ascending, within that by start. Return ONLY the code in a ```python``` block.",
+        "tests": [[[[], 0], []], [[[["a", 1, 3]], 0], [["a", 1, 3]]], [[[["a", 1, 3], ["a", 3, 5]], 0], [["a", 1, 5]]], [[[["a", 1, 3], ["a", 4, 5]], 0], [["a", 1, 3], ["a", 4, 5]]], [[[["a", 1, 3], ["a", 4, 5]], 1], [["a", 1, 5]]], [[[["b", 0, 2], ["a", 1, 4], ["b", 2, 3], ["a", 10, 11]], 0], [["a", 1, 4], ["a", 10, 11], ["b", 0, 3]]], [[[["b", 10, 12], ["a", 5, 7], ["a", 1, 10], ["a", 10, 10]], 0], [["a", 1, 10], ["b", 10, 12]]], [[[["x", 5, 5], ["x", 6, 6]], 1], [["x", 5, 6]]]]
+      },
+      {
+        "func": "fraction_pipeline",
+        "prompt": "Write a Python function fraction_pipeline(start, ops). start is a pair (numerator, denominator). ops is a list of operations (op, numerator, denominator), where op is one of the characters +, -, *, /. Perform the operations in turn on fractions, without using fractions.Fraction. Return the result as a reduced fraction (numerator, denominator) with a positive denominator. Write zero as (0, 1). If any input denominator is zero or a division by a fraction equal to zero occurs, return None. Return ONLY the code in a ```python``` block.",
+        "tests": [[[[1,2],[["+",1,3]]],[5,6]], [[[-2,4],[["*",6,-9]]],[1,3]], [[[3,-6],[["-",1,2],["+",5,10]]],[-1,2]], [[[0,5],[["/",2,3]]],[0,1]], [[[5,7],[["/",0,4]]],null], [[[2,3],[["+",1,6],["*",-3,5],["-",1,-10]]],[-2,5]]]
+      },
+      {
+        "func": "tokenize_query",
+        "prompt": "Write a Python function tokenize_query(text) that tokenizes a simple condition language. Skip whitespace. Return a list of pairs (type, value). Multi-character operators take priority over shorter ones: 'not in' -> NOT_IN, 'is not' -> IS_NOT, '>=' -> GE, '<=' -> LE, '!=' -> NE, '==' -> EQ. Keywords: and, or, not, in, is. A name starts with a letter or _, followed by letters, digits and _. Integers made of digits - return as int. The characters ( ) , > < return as LPAREN, RPAREN, COMMA, GT, LT. An unknown single character return as ('ERROR', char) and continue. Recognize the phrases 'not in' and 'is not' only with exactly one space between the words and only when they are whole words. Return ONLY the code in a ```python``` block.",
+        "tests": [[["age >= 18 and country not in (1,2)"], [["NAME","age"],["GE",">="],["INT",18],["AND","and"],["NAME","country"],["NOT_IN","not in"],["LPAREN","("],["INT",1],["COMMA",","],["INT",2],["RPAREN",")"]]], [["not inland"], [["NOT","not"],["NAME","inland"]]], [["status is not 0 or x != 10"], [["NAME","status"],["IS_NOT","is not"],["INT",0],["OR","or"],["NAME","x"],["NE","!="],["INT",10]]], [["a not  in b"], [["NAME","a"],["NOT","not"],["IN","in"],["NAME","b"]]], [["not_in not in in2"], [["NAME","not_in"],["NOT_IN","not in"],["NAME","in2"]]], [["x@5 <= y"], [["NAME","x"],["ERROR","@"],["INT",5],["LE","<="],["NAME","y"]]]]
+      },
+      {
+        "func": "stale_targets",
+        "prompt": "Write a Python function stale_targets(graph, changed, previous=None). graph is a dict {target: [dependencies]}. A dependency can be another target from graph or an external file. changed is a list of dependencies/targets that changed. previous is an optional list of targets that were up to date before the change; if previous is None, no target is up to date. A target is stale if: it was not in previous, it is itself changed, it depends indirectly/directly on a changed thing, or it depends on a cycle in the graph. If targets form a cycle, all in the cycle and all that depend on them are stale. Return a list of stale targets in the order of the keys in graph. Return ONLY the code in a ```python``` block.",
+        "tests": [[[{"app":["lib","main.c"],"lib":["util.c"],"docs":["readme.md"]}, ["util.c"]], ["app","lib","docs"]], [[{"app":["lib","main.c"],"lib":["util.c"],"docs":["readme.md"]}, ["util.c"], ["docs"]], ["app","lib"]], [[{"a":["b"],"b":["a"],"c":["a"],"d":[]}, [], ["c","d"]], ["a","b","c"]], [[{"a":["b"],"b":["src.c"],"c":["src.c"]}, ["src.c"], ["a"]], ["a","b","c"]], [[{"pkg":["core","ui"],"core":[],"ui":["theme.css"]}, ["theme.css"], ["core"]], ["pkg","ui"]], [[{"x":["missing.h"],"y":["x"]}, ["missing.h"], ["x","y"]], ["x","y"]]]
+      },
+      {
+        "func": "bankers_cents",
+        "prompt": "Write a Python function bankers_cents(s) that takes a string with a decimal amount and returns the number of cents as an int, rounding to two decimal places using the banker's rule half-to-even. Example: 12.345 -> 12.34 (4 even), 12.355 -> 12.36 (5 odd). Handle an optional + or - sign, leading zeros, a missing fractional part, and notation like .5. Ignore whitespace at the start/end. If the format is invalid, return None. Do not use round, float or decimal. Return ONLY the code in a ```python``` block.",
+        "tests": [[["12.345"],1234], [["12.355"],1236], [["12.365"],1236], [["-1.225"],-122], [["0.0051"],1], [["007"],700], [[".5"],50], [["12.a"],null]]
+      },
+      {
+        "func": "merge_events",
+        "prompt": "Write a Python function merge_events(streams). streams is a list of streams, each stream is a list of records. Each record is a list or tuple, the sort key is record[0]. Each stream is already sorted ascending by key. Return one merged stream. On equal keys preserve stability: first the record from the earlier stream, and within the same stream the original order. Do not modify the input. Do not use heapq. Return ONLY the code in a ```python``` block.",
+        "tests": [[[[[[1,"a"],[3,"c"]],[[2,"b"],[4,"d"]]]],[[1,"a"],[2,"b"],[3,"c"],[4,"d"]]], [[[[[1,"a1"],[2,"a2"]],[[1,"b1"],[2,"b2"]]]],[[1,"a1"],[1,"b1"],[2,"a2"],[2,"b2"]]], [[[[],[[0,"z"]],[]]],[[0,"z"]]], [[[[[-1,"a"],[1,"a2"]],[[-1,"b"]],[[-2,"c"]]]],[[-2,"c"],[-1,"a"],[-1,"b"],[1,"a2"]]], [[[[]]],[]], [[[[[2,"x"]]]],[[2,"x"]]]]
+      },
+      {
+        "func": "normalize_cidr",
+        "prompt": "Write a Python function normalize_cidr(s) that validates and normalizes an IPv4 CIDR string in the format 'a.b.c.d/mask'. Octets: numbers 0-255, without plus/minus and without leading zeros (unless the octet is exactly '0'). Mask: a number 0-32. If the input is invalid, return None. If valid, return the network address 'a.b.c.d/mask' (zero out the host bits according to the mask). Do not use IP address libraries. Return ONLY the code in a ```python``` block.",
+        "tests": [[["192.168.1.130/24"],"192.168.1.0/24"], [["10.0.0.1/32"],"10.0.0.1/32"], [["10.0.0.1/0"],"0.0.0.0/0"], [["01.2.3.4/24"],null], [["255.255.255.255/31"],"255.255.255.254/31"], [["256.0.0.1/8"],null], [["1.2.3/24"],null], [["1.2.3.4/33"],null]]
+      }
+    ],
+    "bugfind": [
+      {
+        "prompt": "Find the bug in this Python code:\n\nfor i in range(len(arr)):\n    print(arr[i+1])\n\nDescribe briefly what the bug is.",
+        "keys": ["off.?by.?one", "i\\s*\\+\\s*1", "out of range", "index ?error", "last (element|index)", "exceed", "beyond (the )?(array|list|range)"]
+      },
+      {
+        "prompt": "Find the bug in this Python code:\n\nfor x in lst:\n    if x < 0:\n        lst.remove(x)\n\nDescribe briefly what the bug is.",
+        "keys": ["modif.{0,18}(during|while).{0,12}iterat", "modifying.{0,15}list", "remov.{0,18}(during|while)", "mutat.{0,15}iterat", "skip.{0,12}element", "during iterat", "while iterat"]
+      },
+      {
+        "prompt": "Find the bug or what to fix in this Python code:\n\ndef f(x):\n    if x == None:\n        return 0\n    return x * 2\n\nDescribe briefly.",
+        "keys": ["is none", "== ?none", "should.{0,15}\\bis\\b", "identity", "is not none", "compar.{0,15}none"]
+      }
+    ]
+  }
+}

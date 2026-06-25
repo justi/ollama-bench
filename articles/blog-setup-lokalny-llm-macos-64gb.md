@@ -1,6 +1,6 @@
-# Setup lokalnego LLM na macOS z 64 GB RAM (krok po kroku)
+# Lokalny LLM na macOS z 64 GB RAM: dwa wyspecjalizowane modele zamiast jednego dużego
 
-64 GB RAM nie znaczy "załaduj największy model". Znaczy: dwa wyspecjalizowane modele i sporo wolnego, żeby macOS nie zaczął swapować. Poniżej kompletny setup na Apple Silicon z Ollamą - z gotowymi komendami i plikami Modelfile do skopiowania. Każda liczba wydajnościowa niżej jest zmierzona na działającym środowisku (Apple M1 Max 64 GB, Ollama 0.30.10) i odtwarzalna skryptami z repo podlinkowanego na końcu.
+64 GB RAM nie znaczy "załaduj największy model". Znaczy: dwa wyspecjalizowane modele i sporo wolnego, żeby macOS nie zaczął swapować. Poniżej kompletny setup na Apple Silicon z Ollamą - gotowe komendy i pliki Modelfile do skopiowania, sprawdzone na działającym środowisku (Apple M1 Max 64 GB, Ollama 0.30.10).
 
 ## Krok 0: zainstaluj Ollamę
 
@@ -11,9 +11,9 @@ ollama --version    # sprawdź, że działa (>= 0.30)
 
 Ollama uruchamia się sama w tle przy pierwszym `ollama run`. Jeśli chcesz stały serwer, odpal `ollama serve` w osobnym oknie.
 
-## Zasada: dwa modele, nie jeden gigant
+## Zasada: dwa modele, nie jeden duży
 
-Pokusa jest oczywista: masz 64 GB, więc ładujesz jeden model 30B+ i koniec. Problem w tym, że żaden pojedynczy lokalny model nie jest dobry do wszystkiego - a to akurat zmierzyłem na ośmiu modelach. Lepszy układ to szybki koder do codziennej pracy plus drugi model na zadania wymagające rozumowania:
+Pokusa jest oczywista: masz 64 GB, więc ładujesz jeden model 30B+ i koniec. Problem w tym, że żaden pojedynczy lokalny model nie jest dobry do wszystkiego - zmierzyłem to na ośmiu modelach, i model z czołówki na kodzie potrafił wypaść najsłabiej na rozumowaniu (i odwrotnie; wracam do tego we Wniosku). Lepszy układ to szybki koder do codziennej pracy plus drugi model na zadania wymagające rozumowania:
 
 | Rola | Model | Rozmiar |
 |---|---|---|
@@ -36,7 +36,7 @@ To publiczne tagi z rejestru Ollamy - pobiorą się bez dodatkowej konfiguracji.
 
 ## Krok 2: zbuduj warianty "best"
 
-Domyślne modele działają, ale parę parametrów warto dostroić: ustabilizować sampling i - dla modelu z trybem myślenia - podnieść limit generacji, żeby nie ucinał odpowiedzi. Robi się to plikiem Modelfile i komendą `ollama create`.
+Domyślne modele działają, ale parę parametrów warto dostroić: ustabilizować sampling i - dla modelu z trybem myślenia (ukryty łańcuch rozumowania, który model generuje, zanim odpowie) - podnieść limit generacji (`num_predict`), żeby te tokeny myślenia nie zjadły całej odpowiedzi. Robi się to plikiem Modelfile i komendą `ollama create`.
 
 **qwen-coder-best** - stabilny sampling do codziennej pracy z kodem:
 
@@ -68,20 +68,26 @@ ollama create gpt-oss-best -f configs/gpt-oss.best.Modelfile
 
 `ollama create` z istniejącego modelu bazowego jest błyskawiczne - nie kopiuje wag, tylko dopisuje manifest z twoimi parametrami.
 
-**Steruj myśleniem per zadanie.** To najważniejsza lekcja z pomiarów. Modele z trybem myślenia (qwen3.6, north, gpt-oss) świetnie rozumują, gdy myślą - ale na KODZIE myślenie potrafi zepsuć wynik: kod ginie w eksplozji tokenów myślenia, a parser nie wyłapuje go z odpowiedzi. W teście qwen3.6 z thinkingiem ON dawał 4/8 na zadaniach kodowych, a z `--no-think` - 8/8. Ten sam model, dwa razy lepszy wynik tylko przez tryb. Dlatego: do kodu `--no-think`, do rozumowania zostaw thinking ON. Wyjątek: gpt-oss ma myślenie wbite na stałe (harmony) - nie wyłączysz go, możesz tylko zminimalizować przez `--think=low`.
+Parametry to jednak nie wszystko - jest jeszcze jedno ustawienie, które podajesz nie w Modelfile, lecz przy każdym wywołaniu `ollama run`. **Steruj myśleniem per zadanie.** To najważniejsza lekcja z pomiarów. Model z trybem myślenia świetnie rozumuje, gdy myśli - ale na KODZIE myślenie potrafi zepsuć wynik: kod ginie w eksplozji tokenów myślenia, a parser nie wyłapuje go z odpowiedzi. W teście qwen3.6 (inny model z mojego benchmarku, nie ten z tabeli) z myśleniem ON dawał 4/8 na zadaniach kodowych, a z flagą `--no-think` - 8/8. Ten sam model, dwa razy lepszy wynik tylko przez tryb.
+
+Praktycznie: modele, które pozwalają to przełączać, do kodu uruchamiaj z `--no-think`, a do rozumowania zostaw myślenie ON. gpt-oss jest wyjątkiem - ma myślenie wbite na stałe w swój format odpowiedzi (tzw. harmony, blok myślenia to część protokołu modelu, nie opcja), więc nie wyłączysz go, a do kodu możesz je tylko zminimalizować:
+
+```bash
+ollama run gpt-oss-best --think=low "Napisz funkcję sortującą tablicę przez scalanie."
+```
 
 ## Dlaczego num_predict ma znaczenie
 
-gpt-oss generuje "tokeny myślenia", zanim odpowie. Przy domyślnym, niskim limicie predykcji te tokeny zjadają cały budżet, zanim model dojdzie do faktycznej odpowiedzi - "thinking overflow". Zmierzyłem to na zadaniu wymagającym dłuższej odpowiedzi: przy `num_predict=1500` widoczna odpowiedź miała **0 słów** (cały limit poszedł na myślenie, `done_reason=length`, 1500 tokenów uciętych); po podniesieniu do `3000` ta sama odpowiedź urosła do **512 słów**. Czas wzrósł z ~64 do ~93 s - akceptowalna cena za to, że odpowiedź w ogóle się pojawia.
+Wyżej padło, że gpt-oss potrzebuje wyższego `num_predict` - oto pomiar, który to pokazuje. Model generuje "tokeny myślenia", zanim odpowie. Przy domyślnym, niskim limicie predykcji te tokeny zjadają cały budżet, zanim dojdzie do faktycznej odpowiedzi - "thinking overflow". Zmierzyłem to na zadaniu wymagającym dłuższej odpowiedzi: przy `num_predict=1500` widoczna odpowiedź miała **0 słów** (cały limit poszedł na myślenie, `done_reason=length`, 1500 tokenów uciętych); po podniesieniu do `3000` ta sama odpowiedź urosła do **512 słów**. Czas wzrósł z ~64 do ~93 s - akceptowalna cena za to, że odpowiedź w ogóle się pojawia.
 
 Limit generacji to nie detal. To dlatego wariant gpt-oss wyżej ma `num_predict 3000` - inaczej model z myśleniem potrafi oddać pustą odpowiedź.
 
 ## Czego nie ładować
 
-Nie każdy model nadaje się na Apple Silicon jako stała baza:
+Nie każdy model nadaje się na Apple Silicon jako stała baza - jeden odpada przez przepustowość i energię, drugi dodatkowo nie mieści się w 64 GB:
 
 - **devstral jako stała baza w narzędziu agentowym** - dobry reasoner, ale brutalnie wolny: ~9.8 tok/s generacji i dramatyczny spadek na dużym kontekście (ok. 40 s na prompcie ~12 tys. tokenów, gdzie qwen-coder robi to w ~17 s). Do tego ~6x więcej energii na ten sam output niż qwen-coder. Trzymaj go do rozumowania on-demand, nie jako bazę.
-- **deepseek-r1** - kuszący jako reasoning-model, ale niepraktyczny na tym sprzęcie: ~1.5 tok/s widocznego outputu, kod słaby nawet z wyłączonym myśleniem (4/9 na trudnym zestawie), a przy domyślnym kontekście 128K zżera ~54 GB RAM i wywala się na 64 GB (trzeba zejść do `num_ctx 8192`). Energetycznie ~40x droższy od qwen-codera.
+- **deepseek-r1** - kuszący jako reasoning-model, ale niepraktyczny na tym sprzęcie: ~1.5 tok/s widocznego outputu, kod słaby nawet z wyłączonym myśleniem (4/9 na trudnym zestawie), a przy domyślnym `num_ctx` (128 tys. tokenów) zżera ~54 GB RAM i wywala się na 64 GB (trzeba zejść do `num_ctx 8192`). Energetycznie ~40x droższy od qwen-codera.
 
 Uwaga o energii: tych kWh nie mierzyłem watomierzem - są wyliczone z tok/s przy założonej stałej mocy 45 W. Pewny jest więc ranking (wolniejszy model = proporcjonalnie więcej energii na ten sam output), niepewna sama wartość bezwzględna.
 
@@ -113,8 +119,8 @@ Jeśli oba zwracają sensowną odpowiedź, masz działający dwumodelowy setup.
 
 ## Wniosek
 
-Na 64 GB Maca optymalny układ to nie jeden największy model, tylko para: szybki koder jako baza (~19 GB) plus drugi model do rozumowania (~14 GB), razem ~33 GB i sporo wolnego. Ale najważniejsza lekcja z pomiarów jest inna: nie ma jednego "najlepszego" modelu - jest najlepszy do danego zadania, i to dosłownie - model z czołówki na kodzie potrafił wypaść najsłabiej na rozumowaniu, i odwrotnie. Pobierz publiczne modele bazowe, dostrój je krótkim Modelfile, steruj myśleniem per zadanie (off do kodu, on do logiki), podnieś `num_predict` tam, gdzie model myśli, i nie rób stałej bazy z modelu, który na Apple Silicon ledwo generuje. Sprzęt masz dobry - chodzi o to, żeby go nie zmarnować na jeden przeładowany model.
+Na 64 GB Maca optymalny układ to nie jeden największy model, tylko para: szybki koder jako baza (~18 GB) plus drugi model do rozumowania (~13 GB), razem ~31 GB i sporo wolnego. Ale najważniejsza lekcja z pomiarów jest inna: nie ma jednego "najlepszego" modelu - jest najlepszy do danego zadania, i to dosłownie - model z czołówki na kodzie potrafił wypaść najsłabiej na rozumowaniu, i odwrotnie. Dostrój modele krótkim Modelfile, steruj myśleniem per zadanie i nie rób stałej bazy z modelu, który na Apple Silicon ledwo generuje. Sprzęt masz dobry - chodzi o to, żeby go nie zmarnować na jeden przeładowany model.
 
 ---
 
-*Wszystkie liczby zmierzono na Apple M1 Max 64 GB, Ollama 0.30.10, i są odtwarzalne: pełne wyniki wszystkich osi (`RESULTS.md`), configi modeli (`configs/`), zadania testowe (`prompts.json`) i skrypty pomiarowe (`bench_*.py`) leżą w repozytorium [ollama-bench](https://github.com/justi/ollama-bench). Twoje wartości bezwzględne będą inne (zależą od sprzętu, wersji Ollamy i kwantyzacji) - chodzi o odtworzenie rzędów wielkości i relacji.*
+*Liczby zmierzono na Apple M1 Max 64 GB (Ollama 0.30.10). Odtworzysz je sam: skrypty pomiarowe (`bench_*.py`), configi modeli (`configs/`) i zadania testowe (`prompts.json`) leżą w repozytorium [ollama-bench](https://github.com/justi/ollama-bench). Twoje wartości bezwzględne będą inne (zależą od sprzętu, wersji Ollamy i kwantyzacji) - chodzi o odtworzenie rzędów wielkości i relacji.*

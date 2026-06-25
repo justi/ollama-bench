@@ -10,11 +10,16 @@ _PROMPTS = None
 
 
 def load_prompts():
-    """Loads prompts.json from the repo directory (cached in memory)."""
+    """Loads the prompts file from the repo directory (cached in memory).
+
+    Defaults to prompts_pl.json (the original Polish benchmark). Set the env var
+    BENCH_PROMPTS to pick another file, e.g. BENCH_PROMPTS=prompts_en.json for the
+    English variant - used by the PL-vs-EN language-effect comparison."""
     global _PROMPTS
     if _PROMPTS is None:
         here = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(here, "prompts.json"), encoding="utf-8") as f:
+        fname = os.environ.get("BENCH_PROMPTS", "prompts_pl.json")
+        with open(os.path.join(here, fname), encoding="utf-8") as f:
             _PROMPTS = json.load(f)
     return _PROMPTS
 
