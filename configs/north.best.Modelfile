@@ -1,6 +1,6 @@
 # north-mini-code-1.0 - best config (Cohere MoE coder, THINKING)
-# DO KODU uzywaj: ollama run north-best --think=false "..." (inaczej kod ginie w mysleniu)
-# DO REASONINGU: zostaw thinking ON
+# FOR CODE use: ollama run north-best --think=false "..." (otherwise the code gets lost in the thinking)
+# FOR REASONING: leave thinking ON
 # ollama create north-best -f configs/north.best.Modelfile
 FROM north-mini-code-1.0
 PARAMETER temperature 0.7

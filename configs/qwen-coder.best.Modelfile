@@ -1,4 +1,4 @@
-# qwen3-coder:30b - best config (dedykowany koder, BEZ thinking)
+# qwen3-coder:30b - best config (dedicated coder, NO thinking)
 # ollama create qwen-coder-best -f configs/qwen-coder.best.Modelfile
 FROM qwen3-coder:30b
 PARAMETER temperature 0.7

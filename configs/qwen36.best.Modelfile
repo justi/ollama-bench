@@ -1,7 +1,7 @@
-# qwen3.6:35b-a3b - best config (Qwen3.5 35B-A3B ogolny, THINKING) - parametry unsloth
-# DO KODU uzywaj: ollama run qwen36-best --think=false "..." (najlepszy koder trudnych zadan!)
-# DO REASONINGU: zostaw thinking ON
-# Kluczowe vs default: top_p 0.8 (nie 0.95), temp 0.7 (nie 1.0)
+# qwen3.6:35b-a3b - best config (Qwen3.5 35B-A3B general, THINKING) - unsloth parameters
+# FOR CODE use: ollama run qwen36-best --think=false "..." (best coder for hard tasks!)
+# FOR REASONING: leave thinking ON
+# Key vs default: top_p 0.8 (not 0.95), temp 0.7 (not 1.0)
 # ollama create qwen36-best -f configs/qwen36.best.Modelfile
 FROM qwen3.6:35b-a3b
 PARAMETER temperature 0.7

@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
-# Odpala caly benchmark i zapisuje wyniki do results_*.json.
-# Edytuj liste modeli ponizej pod to, co masz pobrane (ollama list).
-# -e: przerwij po pierwszej awarii (nie publikuj czesciowych wynikow jako pelnego przebiegu);
-# -u: blad na niezdefiniowanej zmiennej; pipefail: status z calego pipe (grok/codex #5)
+# Runs the whole benchmark and saves results to results_*.json.
+# Edit the model list below to match what you have pulled (ollama list).
+# -e: stop on the first failure (do not publish partial results as a full run);
+# -u: error on an undefined variable; pipefail: status from the whole pipe (grok/codex #5)
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# Modele bazowe (publiczne) - zmien na swoje warianty, jesli masz np. qwen-fast.
+# Base (public) models - change to your variants if you have e.g. qwen-fast.
 SPEED_MODELS=("qwen3-coder:30b" "gpt-oss:20b")
 THINK_MODEL="gpt-oss:20b"
 REASON_MODELS=("qwen3-coder:30b" "gpt-oss:20b")
 
-echo "############ 1/4 tok/s (maly prompt) ############"
+echo "############ 1/5 tok/s (small prompt) ############"
 python3 bench_speed.py "${SPEED_MODELS[@]}"
 
-echo "############ 2/4 tok/s (duzy prompt ~12k) ############"
+echo "############ 2/5 tok/s (big prompt ~12k) ############"
 python3 bench_speed.py --big "${SPEED_MODELS[@]}"
 
-echo "############ 3/4 num_predict (dlugosc vs limit) ############"
+echo "############ 3/5 num_predict (length vs limit) ############"
 python3 bench_numpredict.py "${THINK_MODEL}"
 
-echo "############ 4/5 zagadki logiczne (jakosc reasoning) ############"
+echo "############ 4/5 logic puzzles (reasoning quality) ############"
 python3 bench_reasoning.py "${REASON_MODELS[@]}"
 
-echo "############ 5/5 jakosc kodowa (generacja + bug finding) ############"
+echo "############ 5/5 code quality (generation + bug finding) ############"
 python3 bench_coding.py "${REASON_MODELS[@]}"
 
 echo
-echo "Gotowe. Wyniki: results_speed.json, results_numpredict.json, results_reasoning.json, results_coding.json"
+echo "Done. Results: results_speed.json, results_numpredict.json, results_reasoning.json, results_coding.json"

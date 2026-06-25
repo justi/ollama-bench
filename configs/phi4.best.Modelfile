@@ -1,5 +1,5 @@
-# phi4:14b - best config (Microsoft, BEZ thinking)
-# temp 0.7 daje stabilnosc (natywna wyzsza temp = chaos na reasoningu)
+# phi4:14b - best config (Microsoft, NO thinking)
+# temp 0.7 gives stability (native higher temp = chaos on reasoning)
 # ollama create phi4-best -f configs/phi4.best.Modelfile
 FROM phi4:14b
 PARAMETER temperature 0.7

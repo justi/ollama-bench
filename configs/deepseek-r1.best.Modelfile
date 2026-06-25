@@ -1,7 +1,7 @@
 # deepseek-r1:32b - best config (DeepSeek-R1-Distill-Qwen, reasoning-first, THINKING)
-# KRYTYCZNE: num_ctx 8192 - domyslne 128K = 54 GB RAM = CRASH na 64 GB!
-# DO KODU uzywaj: ollama run deepseek-r1-best --think=false "..."
-# DO REASONINGU: zostaw thinking ON (to istota modelu)
+# CRITICAL: num_ctx 8192 - the default 128K = 54 GB RAM = CRASH on 64 GB!
+# FOR CODE use: ollama run deepseek-r1-best --think=false "..."
+# FOR REASONING: leave thinking ON (it is the essence of the model)
 # ollama create deepseek-r1-best -f configs/deepseek-r1.best.Modelfile
 FROM deepseek-r1:32b
 PARAMETER temperature 0.6

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Mierzy tok/s generacji per model.
+"""Measures generation tok/s per model.
 
-Odtwarza liczby typu "qwen ~52 tok/s, gemma ~6 tok/s, devstral ~12 tok/s".
+Reproduces numbers like "qwen ~52 tok/s, gemma ~6 tok/s, devstral ~12 tok/s".
 
   python3 bench_speed.py qwen3-coder:30b gpt-oss:20b gemma3:27b
-  python3 bench_speed.py --big qwen3-coder:30b devstral:24b   # duzy prompt (~12k tokenow)
+  python3 bench_speed.py --big qwen3-coder:30b devstral:24b   # big prompt (~12k tokens)
 """
 import json
 import statistics
@@ -17,12 +17,12 @@ SMALL_PROMPT = P["speed_small"]
 
 
 def build_big_prompt():
-    # prefix + block*repeat + suffix -> ~12-15k tokenow (kontekst narzedziowy agenta)
+    # prefix + block*repeat + suffix -> ~12-15k tokens (agent tooling context)
     b = P["speed_big"]
     return b["prefix"] + (b["block"] * b["repeat"]) + b["suffix"]
 
 
-RUNS = 3  # liczba pomiarow per model PO warmupie; raportujemy mediane
+RUNS = 3  # number of measurements per model AFTER warmup; we report the median
 
 
 def _strip_latest(n):
@@ -30,18 +30,18 @@ def _strip_latest(n):
 
 
 def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
-    # Izolacja: wyladuj WSZYSTKIE inne modele, by w pamieci byl tylko mierzony.
-    # Wiecej niz jeden model = konkurencja o VRAM/RAM = zanizone, niewiarygodne tok/s.
-    iso_confirmed = isolate(model)  # True dopiero gdy /api/ps potwierdzi pustke
-    # Warmup: jeden krotki przebieg, by zaladowac model i skompilowac kernele Metal.
-    # Bez tego pierwszy pomiar bywa zanizony (cold start). Wynik warmupu odrzucamy.
-    # gen tok/s liczymy z eval_duration, ktore NIE zawiera load_duration (load z dysku poza tok/s).
+    # Isolation: unload ALL other models, so only the measured one is in memory.
+    # More than one model = contention for VRAM/RAM = understated, unreliable tok/s.
+    iso_confirmed = isolate(model)  # True only once /api/ps confirms emptiness
+    # Warmup: one short run to load the model and compile the Metal kernels.
+    # Without it the first measurement tends to be understated (cold start). We discard the warmup result.
+    # gen tok/s is computed from eval_duration, which does NOT include load_duration (disk load excluded from tok/s).
     try:
-        generate(model, "Czesc", num_predict=8, think=think)
+        generate(model, "Hi", num_predict=8, think=think)
     except Exception:
         pass
-    # Weryfikacja: po warmupie w pamieci ma byc DOKLADNIE mierzony model.
-    # Normalizacja :latest (grok #4): /api/ps zwraca np. 'deepseek-fast:latest'.
+    # Verification: after warmup, memory should hold EXACTLY the measured model.
+    # :latest normalization (grok #4): /api/ps returns e.g. 'deepseek-fast:latest'.
     loaded = list_loaded()
     norm = None if loaded is None else [_strip_latest(x) for x in loaded]
     isolation_ok = bool(iso_confirmed) and norm == [_strip_latest(model)]
@@ -51,25 +51,25 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
         gr = gen_tok_s(last)
         if gr:
             rates.append(gr)
-        # grok #1: u modeli 'thinking' (gpt-oss) tresc idzie w pole thinking, a eval_count
-        # liczy tokeny MYSLENIA. gen_tok_s to wtedy przepustowosc kanalu thinking, nie outputu.
+        # grok #1: for 'thinking' models (gpt-oss) the content goes into the thinking field, and eval_count
+        # counts THINKING tokens. gen_tok_s is then the throughput of the thinking channel, not the output.
         think_chars = len(last.get("thinking") or "")
         resp_chars = len(last.get("response") or "")
     med = round(statistics.median(rates), 1) if rates else None
-    # rozrzut = max-min surowych przebiegow (consistency): maly = stabilny, duzy = zmienny
+    # spread = max-min of raw runs (consistency): small = stable, large = variable
     spread = round(max(rates) - min(rates), 1) if len(rates) >= 2 else None
-    # response_tok_s_est: dla modeli thinking eval_count liczy tokeny myslenia, wiec surowy
-    # tok/s zawyza przepustowosc WIDOCZNEGO outputu. Szacujemy output proporcjonalnie do
-    # udzialu znakow response w calym wygenerowanym tekscie (grok #1, codex round2 #1).
+    # response_tok_s_est: for thinking models eval_count counts thinking tokens, so the raw
+    # tok/s overstates the throughput of the VISIBLE output. We estimate the output proportionally to
+    # the share of response characters in the whole generated text (grok #1, codex round2 #1).
     resp_est = med
     if med and think_chars > 0 and (resp_chars + think_chars) > 0:
         resp_est = round(med * resp_chars / (resp_chars + think_chars), 1)
     return {
         "model": model,
-        "eval_tok_s": med,               # surowa przepustowosc generacji (z tokenami thinking)
-        "response_tok_s_est": resp_est,  # szacowany WIDOCZNY output (dla thinking < eval_tok_s)
-        "gen_tok_s": med,                # alias wsteczny (= eval_tok_s)
-        "gen_tok_s_spread": spread,      # max-min przebiegow = miara consistency
+        "eval_tok_s": med,               # raw generation throughput (with thinking tokens)
+        "response_tok_s_est": resp_est,  # estimated VISIBLE output (for thinking < eval_tok_s)
+        "gen_tok_s": med,                # backward-compatible alias (= eval_tok_s)
+        "gen_tok_s_spread": spread,      # max-min of runs = consistency measure
         "gen_tok_s_runs": rates,
         "prompt_tok_s": prompt_tok_s(last) if last else None,
         "total_s": total_seconds(last) if last else None,
@@ -85,7 +85,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
 def main():
     args = sys.argv[1:]
     big = "--big" in args
-    # --think=VALUE: jawny poziom (false->wylacz; low/high->string dla gpt-oss); inaczej --no-think
+    # --think=VALUE: explicit level (false->disable; low/high->string for gpt-oss); otherwise --no-think
     think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
     if think_arg is not None:
         think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
@@ -93,15 +93,15 @@ def main():
         think = False if "--no-think" in args else None
     models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Uzycie: python3 bench_speed.py [--big] MODEL [MODEL ...]")
+        print("Usage: python3 bench_speed.py [--big] MODEL [MODEL ...]")
         sys.exit(1)
 
     prompt = build_big_prompt() if big else SMALL_PROMPT
-    # --big: 256 (nie 64) tokenow generacji - przy 64 gen tok/s jest podatne na szum/EOS
-    # po duzym promptcie (codex #3). Prompt-eval i tak mierzymy osobno przez prompt_tok_s.
+    # --big: 256 (not 64) generation tokens - at 64, gen tok/s is prone to noise/EOS
+    # after a big prompt (codex #3). Prompt-eval is measured separately via prompt_tok_s anyway.
     num_predict = 256 if big else 300
-    mode = "DUZY PROMPT (~12k tok)" if big else "maly prompt"
-    print(f"== bench_speed [{mode}] : warmup + mediana z {RUNS} przebiegow ==\n")
+    mode = "BIG PROMPT (~12k tok)" if big else "small prompt"
+    print(f"== bench_speed [{mode}] : warmup + median of {RUNS} runs ==\n")
 
     rows = []
     for m in models:
@@ -109,31 +109,31 @@ def main():
         try:
             row = measure_model(m, prompt, num_predict, think=think)
         except Exception as e:
-            print(f"BLAD: {e}")
+            print(f"ERROR: {e}")
             rows.append({"model": m, "error": str(e)})
             continue
         rows.append(row)
-        warn = "" if row.get("isolated") else f"  [!] IZOLACJA NARUSZONA (w pamieci: {row.get('loaded_during')})"
-        # UWAGA: osobna nazwa (think_note), NIE 'think' - nadpisanie parametru petli psulo
-        # kolejne modele ("think":"" -> HTTP 400 u wszystkich po pierwszym).
+        warn = "" if row.get("isolated") else f"  [!] ISOLATION VIOLATED (in memory: {row.get('loaded_during')})"
+        # NOTE: separate name (think_note), NOT 'think' - overwriting the loop parameter broke
+        # subsequent models ("think":"" -> HTTP 400 on all after the first).
         think_note = ""
         if row.get("is_thinking"):
-            think_note = (f"  [!] THINKING: tok/s zawiera tokeny myslenia, nie tylko output "
-                          f"(response {row['response_chars']} zn / thinking {row['thinking_chars']} zn)")
-        print(f"gen {row['gen_tok_s']} tok/s (mediana z {row['gen_tok_s_runs']}) | "
+            think_note = (f"  [!] THINKING: tok/s includes thinking tokens, not just output "
+                          f"(response {row['response_chars']} chars / thinking {row['thinking_chars']} chars)")
+        print(f"gen {row['gen_tok_s']} tok/s (median of {row['gen_tok_s_runs']}) | "
               f"prompt {row['prompt_tok_s']} tok/s | total {row['total_s']} s{warn}{think_note}")
 
-    print("\n== PODSUMOWANIE (mediana z 3, izolacja) ==")
-    print(f"{'model':<30}{'output tok/s':>13}{'eval tok/s':>12}  uwaga")
+    print("\n== SUMMARY (median of 3, isolation) ==")
+    print(f"{'model':<30}{'output tok/s':>13}{'eval tok/s':>12}  note")
     for r in rows:
         if "error" in r:
-            print(f"{r['model']:<30}{'BLAD':>13}")
+            print(f"{r['model']:<30}{'ERROR':>13}")
             continue
-        # grok #1/#2 codex round2: brak izolacji = liczba niewiarygodna; thinking = eval > output
+        # grok #1/#2 codex round2: no isolation = unreliable number; thinking = eval > output
         if not r.get("isolated"):
-            note = "[!] BRAK IZOLACJI - liczba niepewna"
+            note = "[!] NO ISOLATION - number uncertain"
         elif r.get("is_thinking"):
-            note = "thinking: eval_tok_s zawiera myslenie, output nizszy"
+            note = "thinking: eval_tok_s includes thinking, output lower"
         else:
             note = ""
         out = r.get("response_tok_s_est")
@@ -142,7 +142,7 @@ def main():
 
     with open("results_speed.json", "w") as f:
         json.dump(rows, f, ensure_ascii=False, indent=2)
-    print("\nZapisano: results_speed.json")
+    print("\nSaved: results_speed.json")
 
 
 if __name__ == "__main__":

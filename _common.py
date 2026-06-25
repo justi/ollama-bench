@@ -1,4 +1,4 @@
-"""Wspolne funkcje: rozmowa z Ollama po HTTP, bez zewnetrznych zaleznosci."""
+"""Common functions: talking to Ollama over HTTP, without external dependencies."""
 import json
 import os
 import time
@@ -10,7 +10,7 @@ _PROMPTS = None
 
 
 def load_prompts():
-    """Wczytuje prompts.json z katalogu repo (cache w pamieci)."""
+    """Loads prompts.json from the repo directory (cached in memory)."""
     global _PROMPTS
     if _PROMPTS is None:
         here = os.path.dirname(os.path.abspath(__file__))
@@ -20,11 +20,11 @@ def load_prompts():
 
 
 def list_loaded():
-    """Modele aktualnie zaladowane w pamieci (GET /api/ps).
+    """Models currently loaded in memory (GET /api/ps).
 
-    Zwraca liste nazw, albo None gdy odczyt /api/ps SIE NIE POWIODL. Rozroznienie jest
-    wazne: [] znaczy 'pamiec pusta', None znaczy 'nie wiadomo' - nie wolno mylic awarii
-    kontroli izolacji z poprawna izolacja (codex finding #1)."""
+    Returns a list of names, or None when reading /api/ps FAILED. The distinction is
+    important: [] means 'memory empty', None means 'unknown' - you must not confuse a failure
+    of the isolation check with correct isolation (codex finding #1)."""
     req = urllib.request.Request(OLLAMA_HOST + "/api/ps")
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -35,7 +35,7 @@ def list_loaded():
 
 
 def unload(model):
-    """Wyladowuje model z pamieci (keep_alive=0). Cicho ignoruje bledy."""
+    """Unloads the model from memory (keep_alive=0). Silently ignores errors."""
     try:
         generate(model, "", num_predict=0, keep_alive=0, timeout=60)
     except Exception:
@@ -43,41 +43,41 @@ def unload(model):
 
 
 def isolate(target, poll_timeout=30):
-    """Wyladowuje wszystkie modele i CZEKA, az /api/ps potwierdzi pusta pamiec.
-    Zwraca True gdy potwierdzono pustke, False przy bledzie odczytu lub timeout.
-    Konkurencja o VRAM/RAM zanizа tok/s; bez tego pomiar jest niewiarygodny.
+    """Unloads all models and WAITS until /api/ps confirms empty memory.
+    Returns True when emptiness is confirmed, False on a read error or timeout.
+    Competition for VRAM/RAM lowers tok/s; without this the measurement is unreliable.
 
-    Wazne (grok #3/#5): blad odczytu /api/ps (None) NIE konczy oczekiwania jako sukces -
-    inaczej awaria API udawalaby oproniona pamiec. unload jest asynchroniczny, stad poll."""
+    Important (grok #3/#5): a /api/ps read error (None) does NOT end the wait as success -
+    otherwise an API failure would masquerade as emptied memory. unload is asynchronous, hence the poll."""
     loaded = list_loaded()
     if loaded is None:
-        return False  # nie udalo sie odczytac stanu - nie ruszamy na slepo
+        return False  # failed to read state - we don't proceed blindly
     for m in loaded:
         unload(m)
     waited = 0
     while waited < poll_timeout:
         cur = list_loaded()
         if cur is None:
-            time.sleep(1)  # blad odczytu - probuj dalej, NIE traktuj jako pustka
+            time.sleep(1)  # read error - keep trying, do NOT treat as empty
             waited += 1
             continue
         if len(cur) == 0:
             return True
         time.sleep(1)
         waited += 1
-    return False  # timeout - pamiec wciaz niepusta
+    return False  # timeout - memory still not empty
 
 
 def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_alive=None, think=None):
-    """Wywoluje /api/generate (stream=false) i zwraca pelny JSON odpowiedzi.
+    """Calls /api/generate (stream=false) and returns the full JSON response.
 
-    Kluczowe pola w odpowiedzi Ollamy:
-      - response          : wygenerowany tekst
-      - eval_count        : liczba wygenerowanych tokenow
-      - eval_duration     : czas generacji w nanosekundach
-      - prompt_eval_count : liczba tokenow promptu
-      - prompt_eval_duration : czas przetwarzania promptu (ns)
-      - total_duration    : calkowity czas (ns)
+    Key fields in the Ollama response:
+      - response          : generated text
+      - eval_count        : number of generated tokens
+      - eval_duration     : generation time in nanoseconds
+      - prompt_eval_count : number of prompt tokens
+      - prompt_eval_duration : prompt processing time (ns)
+      - total_duration    : total time (ns)
     """
     opts = dict(options or {})
     if num_predict is not None:
@@ -91,7 +91,7 @@ def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_al
     if keep_alive is not None:
         payload["keep_alive"] = keep_alive
     if think is not None:
-        payload["think"] = think  # Ollama: wylaczenie thinking u thinking-modeli (qwen3.6/gpt-oss)
+        payload["think"] = think  # Ollama: disabling thinking on thinking-models (qwen3.6/gpt-oss)
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         OLLAMA_HOST + "/api/generate",
@@ -106,7 +106,7 @@ def generate(model, prompt, num_predict=None, options=None, timeout=900, keep_al
 
 
 def gen_tok_s(resp):
-    """tok/s generacji z eval_count / eval_duration."""
+    """generation tok/s from eval_count / eval_duration."""
     ec = resp.get("eval_count") or 0
     ed = resp.get("eval_duration") or 0
     if ec and ed:
