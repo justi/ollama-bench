@@ -112,6 +112,21 @@ but weak on non-trivial code (to be verified with no-think).
 phi4 at its native (higher) temperature is chaotic on reasoning (range 4); temp 0.7 gives
 stability (range 0, reasoning 5.0). Small (9 GB), good quality. No thinking.
 
+## gemma4:e4b - Google Gemma 3n E4B, no thinking
+
+| | default | best |
+|---|---|---|
+| temperature | (native 1.0) | **0.7** |
+| top_k | 64 | 64 |
+| top_p | 0.95 | 0.95 |
+| num_ctx | (auto) | 8192 |
+
+Gemma 3n E4B (~4B effective). Temp lowered from Gemma's native 1.0 to 0.7 for reasoning
+stability (same lesson as phi4); top_k 64 / top_p 0.95 are Google's recommended sampling.
+Punches far above its size: on the reasoning set it matches qwen36 (35B) in Polish (5.5/6)
+and beats phi4/devstral/qwen-coder. Nearly language-balanced (PL 5.5 / EN 5.8). No thinking
+mode. Also serves as the neutral cross-family judge for grade_reasoning.py.
+
 ## qwen3.6:35b-a3b - Qwen3.6 35B-A3B (general), THINKING
 
 | | default | best (unsloth params) |
