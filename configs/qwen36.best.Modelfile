@@ -1,12 +1,10 @@
-# qwen3.6:35b-a3b - best config (Qwen3.5 35B-A3B general, THINKING) - unsloth parameters
-# FOR CODE use: ollama run qwen36-best --think=false "..." (best coder for hard tasks!)
-# FOR REASONING: leave thinking ON
-# Key vs default: top_p 0.8 (not 0.95), temp 0.7 (not 1.0)
+# qwen36-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# unsloth params (top_p 0.8). Code needs think=false or it gets lost; reasoning needs thinking ON (+2.0). Modelfile num_predict 3000 is the bare-run default; run_bench overrides per task.
 # ollama create qwen36-best -f configs/qwen36.best.Modelfile
 FROM qwen3.6:35b-a3b
 PARAMETER temperature 0.7
-PARAMETER top_p 0.8
 PARAMETER top_k 20
+PARAMETER top_p 0.8
 PARAMETER min_p 0
 PARAMETER presence_penalty 1.5
 PARAMETER repeat_penalty 1.0

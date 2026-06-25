@@ -1,8 +1,5 @@
-# gemma4:e4b - best config (Google Gemma 4 E4B, thinking-capable, run non-thinking)
-# Gemma 4 E4B: 8B total weights, ~4.5B effective (MatFormer), Q4_K_M, 128K native context.
-# temp 1.0 / top_k 64 / top_p 0.95 = Google/Unsloth recommended sampling (HF: high temp best
-# for coding). E4B thinking is OFF by default (enable via <|think|> in system prompt).
-# Measured: temp 1.0 and an earlier (wrong) 0.7 give identical benchmark scores here.
+# gemma-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# Gemma 4 E4B (8B total / ~4.5B effective). Official temp 1.0 (top_k 64, top_p 0.95). Thinking off by default; ON helps PL reasoning (5.5 -> 6.0). Also the neutral cross-family judge.
 # ollama create gemma-best -f configs/gemma.best.Modelfile
 FROM gemma4:e4b
 PARAMETER temperature 1.0

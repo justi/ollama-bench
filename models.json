@@ -4,14 +4,14 @@
     "qwen36-best": {
       "base": "qwen3.6:35b-a3b",
       "modelfile": "configs/qwen36.best.Modelfile",
-      "params": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "num_ctx": 8192},
+      "params": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0, "presence_penalty": 1.5, "repeat_penalty": 1.0, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "controllable",
       "tasks": {
         "code":      {"think": "false", "num_predict": 4000},
         "reasoning": {"think": "true",  "num_predict": 10000},
         "speed":     {"think": "false"}
       },
-      "notes": "unsloth params (top_p 0.8). Code needs think=false or it gets lost; reasoning needs thinking ON (+2.0)."
+      "notes": "unsloth params (top_p 0.8). Code needs think=false or it gets lost; reasoning needs thinking ON (+2.0). Modelfile num_predict 3000 is the bare-run default; run_bench overrides per task."
     },
     "qwen-coder-best": {
       "base": "qwen3-coder:30b",
@@ -28,7 +28,7 @@
     "gpt-oss-best": {
       "base": "gpt-oss:20b",
       "modelfile": "configs/gpt-oss.best.Modelfile",
-      "params": {"temperature": 0.3, "num_ctx": 8192},
+      "params": {"temperature": 0.3, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "forced",
       "tasks": {
         "code":      {"think": "low",  "num_predict": 4000},
@@ -40,7 +40,7 @@
     "north-best": {
       "base": "north-mini-code-1.0",
       "modelfile": "configs/north.best.Modelfile",
-      "params": {"temperature": 0.7, "top_p": 0.8, "num_ctx": 8192},
+      "params": {"temperature": 0.7, "top_p": 0.8, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "controllable",
       "tasks": {
         "code":      {"think": "false", "num_predict": 4000},
@@ -76,7 +76,7 @@
     "unsloth-q4xl-best": {
       "base": "gurubot/Qwen3.5-35B-A3B-GGUF-unsloth-nothink:UD-Q4_K_XL",
       "modelfile": "configs/unsloth-q4xl.best.Modelfile",
-      "params": {"temperature": 0.7, "top_p": 0.8, "num_ctx": 8192},
+      "params": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0, "presence_penalty": 1.5, "repeat_penalty": 1.0, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "none",
       "tasks": {
         "code":      {"think": "false", "num_predict": 4000},
@@ -100,7 +100,7 @@
     "deepseek-r1-best": {
       "base": "deepseek-r1:32b",
       "modelfile": "configs/deepseek-r1.best.Modelfile",
-      "params": {"temperature": 0.6, "num_ctx": 8192},
+      "params": {"temperature": 0.6, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "controllable",
       "tasks": {
         "code":      {"think": "false", "num_predict": 4000},

@@ -1,4 +1,5 @@
-# qwen3-coder:30b - best config (dedicated coder, NO thinking)
+# qwen-coder-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# Dedicated coder, no thinking. Efficiency king (~61 tok/s).
 # ollama create qwen-coder-best -f configs/qwen-coder.best.Modelfile
 FROM qwen3-coder:30b
 PARAMETER temperature 0.7

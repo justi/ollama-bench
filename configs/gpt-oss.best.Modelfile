@@ -1,9 +1,7 @@
-# gpt-oss:20b - best config for CODING (thinking HARDCODED - cannot disable, only --think=low for code)
-# temp 0.3 (NOT 0 - 100% loops!), num_predict 3000 (thinking does not cut off the response)
-# reasoning_effort is NOT a Modelfile PARAMETER - control it via --think=low|medium|high (CLI/API)
-# FOR REASONING: use temp 1.0 + --think (default medium), e.g. ollama run gpt-oss-best --think=high
+# gpt-oss-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# Thinking HARDCODED (harmony) - cannot disable, only level. Code profile temp 0.3; reasoning wants temp 1.0 (needs a separate Modelfile variant). NEVER temp 0 (100% loops). speed uses think=low (its floor).
 # ollama create gpt-oss-best -f configs/gpt-oss.best.Modelfile
 FROM gpt-oss:20b
 PARAMETER temperature 0.3
-PARAMETER num_predict 3000
 PARAMETER num_ctx 8192
+PARAMETER num_predict 3000
