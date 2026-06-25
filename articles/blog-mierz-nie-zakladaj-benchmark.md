@@ -8,7 +8,7 @@ To jest historia o tym, że benchmark to nie tylko mierzony obiekt. To też narz
 
 qwen36 to najlepszy koder trudnych zadań w stawce - 6 na 9. Chyba że włączysz mu thinking. Wtedy spada na 0 na 9: ostatni, zero rozwiązanych zadań.
 
-Problem nie był w modelu - był w jednym przełączniku. qwen36 z włączonym thinkingiem generuje tak długie rozumowanie, że zjada cały budżet tokenów, zanim dojdzie do kodu. Kod albo ląduje w ukrytym polu myślenia, albo jest ucinany w połowie - benchmark widzi pustkę, nie rozwiązanie (flaga ucięcia zapaliła się na wszystkich dziewięciu zadaniach). Po przełączeniu na `--no-think` ten sam model pisze kod od razu: 6/9, czoło stawki. To 0/9 nie mówiło nic o zdolności modelu. Mówiło o mojej konfiguracji.
+Problem nie był w modelu - był w jednym przełączniku. qwen36 z włączonym thinkingiem generuje tak długie rozumowanie, że zjada cały budżet tokenów, zanim dojdzie do kodu. Kod albo ląduje w ukrytym polu myślenia, albo jest ucinany w połowie - benchmark widzi pustkę, nie rozwiązanie (flaga ucięcia zapaliła się na niemal wszystkich z dziewięciu zadań). Po przełączeniu na `--no-think` ten sam model pisze kod od razu: 6/9, czoło stawki. To 0/9 nie mówiło nic o zdolności modelu. Mówiło o mojej konfiguracji.
 
 Co ciekawe, rozmiar szkody zależy od tego, jak gadatliwie model myśli. north, który rozumuje oszczędnie, z thinkingiem i bez wypada prawie tak samo (4-5/9 vs 4/9). qwen36, który myśli rozwlekle, kolabuje z 6 do 0. Ta sama zła nastawa, dwa modele, zupełnie różny skutek.
 
@@ -24,7 +24,7 @@ Po podniesieniu budżetu do 3000 tokenów (i dodaniu detekcji ucięcia) unsloth 
 
 Mając poprawione configi, zmierzyłem ranking kodu raz - n=1. Wyglądał porządnie: qwen3.6 na czele, reszta za nim. Tylko że "raz" przy temperaturze 0.7 to za mało.
 
-Puściłem każdy model trzy razy. phi4 dał kolejno: 2, 3, 5. gpt-oss: 6, 4, 7. Ten sam model, ten sam config, rozrzut trzech punktów na sześciu możliwych. Przy jednym przebiegu phi4 mógł trafić do tabeli jako "2/9, najgorszy" albo "5/9, środek" - czysty rzut monetą.
+Puściłem każdy model trzy razy. phi4 dał kolejno: 2, 3, 5. gpt-oss: 6, 4, 7. Ten sam model, ten sam config, rozrzut trzech punktów na dziewięciu możliwych. Przy jednym przebiegu phi4 mógł trafić do tabeli jako "2/9, najgorszy" albo "5/9, środek" - czysty rzut monetą.
 
 Mediana z trzech przebiegów pokazała, że ranking n=1 był błędny w 3 z 7 pozycji. Dopiero powtórzenie ujawniło, że szczyt kodu to remis trzech modeli, a nie jeden wyraźny lider. Pojedynczy pomiar zaszumionej wielkości nie jest wynikiem - jest jedną próbką z rozkładu.
 
