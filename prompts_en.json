@@ -14,34 +14,31 @@
 
   "numpredict_task": "Consider a reverse cause-and-effect chain. A language model achieved a poor AUC score on the test set. List at least two alternative causal paths (from effect to cause), for each step mark whether the cause is necessary or sufficient, and indicate which path is the most likely. Present this as a table with justification.",
 
+  "_reasoning_note": "Each puzzle has ONE unambiguous correct answer. Grading is done by an LLM judge (bench_reasoning.py) that compares the tested model's response to 'correct' - NOT by regex.",
   "reasoning": [
     {
       "q": "Mark has as many brothers as sisters. His sister Anna has twice as many brothers as sisters. How many boys and how many girls are in the family? Give just the numbers.",
-      "all": [
-        ["4 boys", "four boys", "boys.{0,8}4", "4.{0,6}boys"],
-        ["3 girls", "three girls", "girls.{0,8}3", "3.{0,6}girls"]
-      ]
+      "correct": "4 boys and 3 girls"
     },
     {
       "q": "On an island there are knights (who always tell the truth) and knaves (who always lie). You meet a person A who says: 'I am a knave'. Who is A? Explain briefly.",
-      "keys": ["cannot.*exist", "contradiction", "paradox", "impossible", "neither (a )?knight"]
+      "correct": "Neither - it is a paradox/contradiction. No one on the island can say 'I am a knave': a knight could not (it would be a lie), and a knave could not (it would be true). So A cannot be a knight nor a knave; no consistent answer exists."
     },
     {
       "q": "You have a transport problem: a wolf, a goat and a cabbage, and a boat that holds you and one item. What is the minimum number of river crossings needed? Give the number.",
-      "keys": ["\\b7\\b", "seven"]
+      "correct": "7"
     },
     {
       "q": "Monty Hall: there are 3 doors, behind one a car. You pick door 1. The host opens door 3 (empty). Is it worth switching your choice to door 2? Give the decision and the probability.",
-      "keys": ["2/3", "66", "67", "yes.{0,15}switch", "should switch", "worth switching", "switch to door 2"],
-      "anti": ["does not change.{0,25}probab", "equal probab", "no difference", "doesn.?t matter", "same probab", "not worth switch", "don.?t switch", "no need to switch", "stick with (the )?(original|first|door 1)"]
+      "correct": "Yes, you should switch to door 2; the probability of winning is 2/3."
     },
     {
       "q": "The number 76 is the ASCII code of which capital letter of the Latin alphabet? Give just the letter.",
-      "keys": ["\\bL\\b"]
+      "correct": "L"
     },
     {
       "q": "Reverse the word HELLO, take the third letter of the result. What letter is it? Give just the letter.",
-      "keys": ["\\bL\\b"]
+      "correct": "L"
     }
   ],
 

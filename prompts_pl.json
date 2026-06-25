@@ -14,34 +14,31 @@
 
   "numpredict_task": "Rozwaz odwrotny lancuch przyczynowo-skutkowy. Model jezykowy osiagnal slaby wynik AUC na zbiorze testowym. Wymien co najmniej dwie alternatywne sciezki przyczyn (od skutku do przyczyny), dla kazdego kroku zaznacz czy przyczyna jest konieczna czy wystarczajaca, i wskaz, ktora sciezka jest najbardziej prawdopodobna. Przedstaw to w formie tabeli z uzasadnieniem.",
 
+  "_reasoning_note": "Kazda zagadka ma JEDNA jednoznaczna poprawna odpowiedz. Ocena przez LLM-sedziego (bench_reasoning.py), ktory porownuje odpowiedz testowanego modelu z 'correct' - NIE regexem.",
   "reasoning": [
     {
       "q": "Marek ma tyle samo braci co siostr. Jego siostra Ania ma dwa razy wiecej braci niz siostr. Ilu jest chlopcow, a ile dziewczynek w rodzinie? Podaj same liczby.",
-      "all": [
-        ["4 chlop", "chlop.{0,12}4", "4.{0,6}chlop", "czterech chlop", "4 boys", "boys.{0,8}4"],
-        ["3 dziew", "dziew.{0,12}3", "3.{0,6}dziew", "trzy dziew", "3 girls", "girls.{0,8}3"]
-      ]
+      "correct": "4 chlopcow i 3 dziewczynki"
     },
     {
       "q": "Na wyspie sa rycerze (zawsze mowia prawde) i lotrzy (zawsze klamia). Spotykasz osobe A, ktora mowi: 'Jestem lotrem'. Kim jest A? Wyjasnij krotko.",
-      "keys": ["nie moze.*istnie", "sprzeczn", "paradoks", "ani rycerz", "niemozliw"]
+      "correct": "Zaden - to paradoks/sprzecznosc. Nikt na wyspie nie moze powiedziec 'Jestem lotrem': rycerz nie moze (byloby to klamstwo), a lotr nie moze (byloby to prawda). Wiec A nie moze byc ani rycerzem, ani lotrem; nie ma spojnej odpowiedzi."
     },
     {
       "q": "Masz problem przewozenia: wilk, koza i kapusta, lodka miesci ciebie i jeden przedmiot. Ile minimalnie przepraw przez rzeke potrzeba? Podaj liczbe.",
-      "keys": ["\\b7\\b", "siedem"]
+      "correct": "7"
     },
     {
       "q": "Monty Hall: sa 3 bramki, za jedna auto. Wybierasz bramke 1. Prowadzacy otwiera bramke 3 (pusta). Czy oplaca sie zmienic wybor na bramke 2? Podaj decyzje i prawdopodobienstwo.",
-      "keys": ["2/3", "66", "tak.{0,15}zmien", "warto zmien", "nalezy zmien"],
-      "anti": ["nie zmienia.{0,25}prawdopodob", "rowne prawdopodob", "bez znaczenia", "nie ma znaczenia", "takie samo prawdopodob", "nie warto zmien", "zostan przy", "pozostan przy", "zostac przy", "nie zmieniaj"]
+      "correct": "Tak, oplaca sie zmienic na bramke 2; prawdopodobienstwo wygranej to 2/3."
     },
     {
       "q": "Liczba 76 to kod ASCII ktorej wielkiej litery alfabetu lacinskiego? Podaj sama litere.",
-      "keys": ["\\bL\\b"]
+      "correct": "L"
     },
     {
       "q": "Slowo HELLO odwroc, wez trzecia litere wyniku. Jaka to litera? Podaj sama litere.",
-      "keys": ["\\bL\\b"]
+      "correct": "L"
     }
   ],
 
