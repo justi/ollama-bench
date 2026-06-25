@@ -1,0 +1,113 @@
+{
+  "_doc": "SINGLE SOURCE OF TRUTH for how each model is configured AND invoked per task. Scripts read this (via run_bench.py) so invocations are canonical - no ad-hoc flags, nothing forgotten. think/num_predict are the per-task knobs; params document the best sampling baked into configs/*.Modelfile. think values are exactly what --think= expects: false | true | low | high. 'thinking': controllable | none | forced (gpt-oss: cannot be disabled, only leveled). reasoning num_predict is high for thinking models (thinking eats budget; runaway-safe). speed always think=false (throughput convention, matches the energy table).",
+  "models": {
+    "qwen36-best": {
+      "base": "qwen3.6:35b-a3b",
+      "modelfile": "configs/qwen36.best.Modelfile",
+      "params": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "true",  "num_predict": 10000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "unsloth params (top_p 0.8). Code needs think=false or it gets lost; reasoning needs thinking ON (+2.0)."
+    },
+    "qwen-coder-best": {
+      "base": "qwen3-coder:30b",
+      "modelfile": "configs/qwen-coder.best.Modelfile",
+      "params": {"temperature": 0.7, "top_k": 20, "top_p": 0.8, "repeat_penalty": 1.05, "num_ctx": 8192},
+      "thinking": "none",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "false", "num_predict": 3000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "Dedicated coder, no thinking. Efficiency king (~61 tok/s)."
+    },
+    "gpt-oss-best": {
+      "base": "gpt-oss:20b",
+      "modelfile": "configs/gpt-oss.best.Modelfile",
+      "params": {"temperature": 0.3, "num_ctx": 8192},
+      "thinking": "forced",
+      "tasks": {
+        "code":      {"think": "low",  "num_predict": 4000},
+        "reasoning": {"think": "high", "num_predict": 6000, "temperature": 1.0},
+        "speed":     {"think": "low"}
+      },
+      "notes": "Thinking HARDCODED (harmony) - cannot disable, only level. Code profile temp 0.3; reasoning wants temp 1.0 (needs a separate Modelfile variant). NEVER temp 0 (100% loops). speed uses think=low (its floor)."
+    },
+    "north-best": {
+      "base": "north-mini-code-1.0",
+      "modelfile": "configs/north.best.Modelfile",
+      "params": {"temperature": 0.7, "top_p": 0.8, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "true",  "num_predict": 6000, "top_p": 0.95},
+        "speed":     {"think": "false"}
+      },
+      "notes": "Thinking model. Code profile top_p 0.8; reasoning wants top_p 0.95 (needs a separate Modelfile variant)."
+    },
+    "phi4-best": {
+      "base": "phi4:14b",
+      "modelfile": "configs/phi4.best.Modelfile",
+      "params": {"temperature": 0.7, "num_ctx": 8192},
+      "thinking": "none",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "false", "num_predict": 3000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "temp 0.7 measured more stable than native higher temp on reasoning (range 4 -> 0). Best reasoner (5.33), worst code."
+    },
+    "devstral-best": {
+      "base": "devstral-small-2:24b-fast",
+      "modelfile": "configs/devstral.best.Modelfile",
+      "params": {"temperature": 0.2, "top_p": 0.9, "num_ctx": 8192},
+      "thinking": "none",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "false", "num_predict": 3000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "Base is the benchmarked devstral-small-2:24b-fast (NOT public devstral:24b). Slow (~10 tok/s), strong reasoning."
+    },
+    "unsloth-q4xl-best": {
+      "base": "gurubot/Qwen3.5-35B-A3B-GGUF-unsloth-nothink:UD-Q4_K_XL",
+      "modelfile": "configs/unsloth-q4xl.best.Modelfile",
+      "params": {"temperature": 0.7, "top_p": 0.8, "num_ctx": 8192},
+      "thinking": "none",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "false", "num_predict": 3000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "Qwen3.5 Q4_K_XL, nothink baked in (cannot enable thinking). Balanced code 6 + reasoning 5.0."
+    },
+    "gemma-best": {
+      "base": "gemma4:e4b",
+      "modelfile": "configs/gemma.best.Modelfile",
+      "params": {"temperature": 1.0, "top_k": 64, "top_p": 0.95, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "true",  "num_predict": 10000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "Gemma 4 E4B (8B total / ~4.5B effective). Official temp 1.0 (top_k 64, top_p 0.95). Thinking off by default; ON helps PL reasoning (5.5 -> 6.0). Also the neutral cross-family judge."
+    },
+    "deepseek-r1-best": {
+      "base": "deepseek-r1:32b",
+      "modelfile": "configs/deepseek-r1.best.Modelfile",
+      "params": {"temperature": 0.6, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000},
+        "reasoning": {"think": "true",  "num_predict": 10000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "CRITICAL: num_ctx MUST be 8192 - the default 131072 = 54 GB = crash on 64 GB. Very slow (~4 tok/s). Dropped from the main fleet (slowest + no winning axis)."
+    }
+  }
+}
