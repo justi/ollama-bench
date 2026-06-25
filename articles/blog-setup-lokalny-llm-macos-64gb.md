@@ -1,6 +1,6 @@
 # Setup lokalnego LLM na macOS z 64 GB RAM (krok po kroku)
 
-64 GB RAM nie znaczy "załaduj największy model". Znaczy: dwa wyspecjalizowane modele i sporo wolnego, żeby macOS nie zaczął swapować. Poniżej kompletny setup na Apple Silicon z Ollamą - z gotowymi komendami i plikami Modelfile do skopiowania. Każda liczba niżej jest zmierzona na działającym środowisku (Apple M1 Max 64 GB, Ollama 0.30.10) i odtwarzalna skryptami z repo podlinkowanego na końcu.
+64 GB RAM nie znaczy "załaduj największy model". Znaczy: dwa wyspecjalizowane modele i sporo wolnego, żeby macOS nie zaczął swapować. Poniżej kompletny setup na Apple Silicon z Ollamą - z gotowymi komendami i plikami Modelfile do skopiowania. Każda liczba wydajnościowa niżej jest zmierzona na działającym środowisku (Apple M1 Max 64 GB, Ollama 0.30.10) i odtwarzalna skryptami z repo podlinkowanego na końcu.
 
 ## Krok 0: zainstaluj Ollamę
 
@@ -13,21 +13,23 @@ Ollama uruchamia się sama w tle przy pierwszym `ollama run`. Jeśli chcesz sta�
 
 ## Zasada: dwa modele, nie jeden gigant
 
-Pokusa jest oczywista: masz 64 GB, więc ładujesz jeden model 30B+ i koniec. Problem w tym, że żaden pojedynczy lokalny model nie jest dobry do wszystkiego - a to akurat zmierzyłem na siedmiu modelach. Lepszy układ to szybki koder do codziennej pracy plus drugi model na zadania wymagające rozumowania:
+Pokusa jest oczywista: masz 64 GB, więc ładujesz jeden model 30B+ i koniec. Problem w tym, że żaden pojedynczy lokalny model nie jest dobry do wszystkiego - a to akurat zmierzyłem na ośmiu modelach. Lepszy układ to szybki koder do codziennej pracy plus drugi model na zadania wymagające rozumowania:
 
 | Rola | Model | Rozmiar |
 |---|---|---|
-| Codzienna praca, generacja kodu | `qwen3-coder:30b` | ~19 GB |
-| Algorytmy, rozumowanie | `gpt-oss:20b` | ~14 GB |
-| **Razem** | | **~33 GB** |
+| Codzienna praca, generacja kodu | `qwen3-coder:30b` | ~18 GB |
+| Algorytmy, rozumowanie | `gpt-oss:20b` | ~13 GB |
+| **Razem** | | **~31 GB** |
 
-Po pobraniu obu zostaje ~31 GB wolnego RAM - system oddycha, a w razie potrzeby doładujesz trzeci model on-demand. To rozmiary na dysku; w pamięci przy aktywnym kontekście bywa nieco więcej, dlatego margines się przydaje.
+Po pobraniu obu zostaje ~33 GB wolnego RAM (rozmiary z `ollama list`) - system oddycha, a w razie potrzeby doładujesz trzeci model on-demand. To rozmiary na dysku; w pamięci przy aktywnym kontekście bywa nieco więcej, dlatego margines się przydaje.
+
+Dlaczego gpt-oss, a nie wyżej punktujący reasoner? To świadomy kompromis. Na zagadkach logicznych gpt-oss dał w teście 4.33/6 - mniej niż phi4 (5.33) czy devstral (5.0), ale oba są znacznie wolniejsze (~20 i ~10 tok/s wobec ~51 u gpt-oss), więc jako stała baza wychodzą drogo. Gdy liczy się sama jakość rozumowania ponad przepustowość, doładuj phi4 on-demand.
 
 ## Krok 1: pobierz modele bazowe
 
 ```bash
-ollama pull qwen3-coder:30b    # ~19 GB
-ollama pull gpt-oss:20b        # ~14 GB
+ollama pull qwen3-coder:30b    # ~18 GB
+ollama pull gpt-oss:20b        # ~13 GB
 ```
 
 To publiczne tagi z rejestru Ollamy - pobiorą się bez dodatkowej konfiguracji.
@@ -79,14 +81,13 @@ Limit generacji to nie detal. To dlatego wariant gpt-oss wyżej ma `num_predict 
 Nie każdy model nadaje się na Apple Silicon jako stała baza:
 
 - **devstral jako stała baza w narzędziu agentowym** - dobry reasoner, ale brutalnie wolny: ~9.8 tok/s generacji i dramatyczny spadek na dużym kontekście (ok. 40 s na prompcie ~12 tys. tokenów, gdzie qwen-coder robi to w ~17 s). Do tego ~6x więcej energii na ten sam output niż qwen-coder. Trzymaj go do rozumowania on-demand, nie jako bazę.
-- **deepseek-r1** - kuszący jako reasoning-model, ale niepraktyczny na tym sprzęcie: ~1.5 tok/s widocznego outputu, kod słaby (4/8), a przy domyślnym kontekście 128K zżera ~54 GB RAM i wywala się na 64 GB (trzeba zejść do `num_ctx 8192`). Energetycznie ~40x droższy od qwen-codera.
-- **gemma w dużym wariancie** - rzędu 6 tok/s generacji na M1 Max. Za wolno do interaktywnej pracy.
+- **deepseek-r1** - kuszący jako reasoning-model, ale niepraktyczny na tym sprzęcie: ~1.5 tok/s widocznego outputu, kod słaby nawet z wyłączonym myśleniem (4/9 na trudnym zestawie), a przy domyślnym kontekście 128K zżera ~54 GB RAM i wywala się na 64 GB (trzeba zejść do `num_ctx 8192`). Energetycznie ~40x droższy od qwen-codera.
 
 Uwaga o energii: tych kWh nie mierzyłem watomierzem - są wyliczone z tok/s przy założonej stałej mocy 45 W. Pewny jest więc ranking (wolniejszy model = proporcjonalnie więcej energii na ten sam output), niepewna sama wartość bezwzględna.
 
 ## Drobne, ale ważne ustawienia
 
-- **Kontekst (`num_ctx`)** - w Modelfile zostawiłem 8192; wystarcza do większości pracy i oszczędza RAM (zejście z 65536 do 8192 to oszczędność rzędu kilkunastu GB). Przetwarzasz długie pliki? Podbij do `32768` lub `65536` - masz zapas pamięci.
+- **Kontekst (`num_ctx`)** - w Modelfile zostawiłem 8192; wystarcza do większości pracy i oszczędza RAM (przycięcie dużego kontekstu zwalnia rzędu kilkunastu GB - np. zejście z 64K do 8K). Przetwarzasz długie pliki? Podbij do `32768` lub `65536` - masz zapas pamięci.
 - **Keep-alive** - model trzymany w pamięci startuje natychmiast. Wydłuż czas, żeby nie płacić za przeładowanie przy każdym wywołaniu:
 
 ```bash
