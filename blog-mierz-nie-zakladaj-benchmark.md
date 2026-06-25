@@ -43,3 +43,7 @@ Te cztery to nie wszystko. Energii w ogóle nie mierzyłem watomierzem - liczę 
 Najmocniejsze w tym wszystkim jest to, że skrypty przeszły audyt dwóch modeli i około trzydziestu poprawek - i DALEJ miały te cztery błędy. Bo audyt patrzył na logikę kodu, a te bugi siedziały w styku narzędzia z mierzonymi modelami: w configu, w limicie tokenów, w liczbie prób, w nazwie zmiennej.
 
 Wniosek jest niewygodny, ale trzeba go przyjąć: liczba z benchmarku bez audytu samego benchmarku to nie fakt. To hipoteza, która akurat wygląda jak fakt. Mierz - ale najpierw upewnij się, że mierzysz to, co myślisz, że mierzysz.
+
+---
+
+Skrypty benchmarku z opisanymi tu poprawkami (`bench_*.py`), configi modeli (`configs/`), zadania testowe (`prompts.json`) i pełne wyniki (`RESULTS.md`) są w repo: github.com/justi/ollama-bench. Bugi opisane wyżej i ich fixy są w historii commitów.

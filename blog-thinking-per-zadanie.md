@@ -44,3 +44,7 @@ Nie pytaj "czy włączyć thinking" jako globalnej decyzji o modelu. To źle pos
 Najlepszym dowodem jest qwen3.6. Z thinkingiem wymuszonym na stałe wygląda albo na słabego kodera (4/8 z ON), albo na słabego logika (3.0 z OFF) - zależnie od tego, którą nastawę zamrozisz. A sterowany per zadanie (off do kodu, on do logiki) ląduje w czołówce OBU osi naraz. Ten sam model, dwa zadania, dwie odwrotne nastawy jednego przełącznika.
 
 Lokalne modele nagradzają tych, którzy wiedzą, który przełącznik i kiedy ustawić. Thinking jest pierwszym z nich.
+
+---
+
+Configi modeli (`configs/`), zadania testowe (`prompts.json`), skrypty benchmarku (`bench_*.py`) i surowe wyniki (`RESULTS.md`) są w repo: github.com/justi/ollama-bench. Każdą liczbę z tego tekstu odpalisz i sprawdzisz sam.

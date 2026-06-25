@@ -42,3 +42,7 @@ Zamiast jednego "najlepszego" - mapa decyzji zależna od tego, co robisz:
 Nie istnieje "najlepszy lokalny LLM" - istnieje najlepszy do kodu, najlepszy do logiki, najszybszy, najtańszy, i one nie są tym samym modelem. Benchmark mierzy dokładnie tyle, ile potrafią jego zadania, a dobór zadania potrafi odwrócić wynik na drugą stronę.
 
 Zanim zapytasz, który model pobrać, odpowiedz najpierw na inne pytanie: do czego. Reszta z tego wynika.
+
+---
+
+Pełne wyniki wszystkich osi (`RESULTS.md`), configi modeli (`configs/`), zadania testowe (`prompts.json`) i skrypty (`bench_*.py`) są w repo: github.com/justi/ollama-bench. Ranking odtworzysz na swoim sprzęcie.
