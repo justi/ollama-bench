@@ -47,9 +47,34 @@ python3 bench_cost.py "qwen3-coder:30b=54.8" "deepseek-coder:33b=10.4"   # energ
 `bench_coding.py` wykonuje (exec) kod wygenerowany przez model na lokalnych testach -
 uruchamiaj tylko na zaufanych modelach lokalnych.
 
-## Uwaga o wariantach "fast"
+## Najlepsze configi per model (`configs/`)
 
-W artykule modele "fast" (np. `qwen-fast`) to lokalne Modelfile z dostrojonymi parametrami - nie publiczne tagi. Patrz `Modelfile.qwen-fast` i `Modelfile.gpt-oss-fast` w tym repo: zbuduj je raz przez `ollama create`, potem podaj nazwę wariantu skryptom. Wyniki tok/s będą zbliżone do bazowych; różnica `num_predict` widać dopiero w `bench_numpredict.py`.
+Aktualne, rzetelne wyniki (sekcje z 2026-06) opierają się na wariantach `*-best`, zbudowanych
+z `configs/*.best.Modelfile` (8 modeli: qwen-coder, gpt-oss, devstral, north, phi4, qwen36,
+deepseek-r1, unsloth-q4xl). Każdy ma najlepsze parametry + `num_ctx 8192` + `num_predict 3000`.
+Pełne zestawienie default vs best: `MODELS_CONFIG.md`.
+
+```bash
+ollama create qwen36-best -f configs/qwen36.best.Modelfile
+python3 bench_coding.py --expert --num-predict=3000 qwen36-best            # kod, thinking ON
+python3 bench_coding.py --expert --no-think --num-predict=3000 qwen36-best  # kod, thinking OFF
+python3 bench_reasoning.py --runs 3 qwen36-best                            # reasoning, n=3
+```
+
+Sterowanie thinkingiem per zadanie: `--no-think` (Qwen-distill, do kodu), `--think=low|high`
+(gpt-oss - nie da się wyłączyć). Wykrywanie ucięcia: flaga `TR!` gdy `done_reason=length`.
+
+## Struktura repo
+
+- `bench_*.py`, `_common.py` - skrypty pomiarowe
+- `prompts.json` - wszystkie zadania testowe (generate_expert, generate_hard, bugfind, reasoning)
+- `configs/` - 8 best Modelfile (kanoniczne, aktualne)
+- `RESULTS.md`, `MODELS_CONFIG.md` - wyniki + parametry
+- `articles/` - artykuły blogowe oparte na tych wynikach
+- `legacy/` - stare Modelfile z wczesnych eksperymentów ("fast", usunięte modele); zachowane dla
+  prowenancji starszych sekcji `RESULTS.md`, NIE używane w aktualnych pomiarach
+
+Logi runów (`log_*.txt`) i surowe wyniki (`results_*.json`) są gitignorowane - regenerowalne.
 
 ## Disclaimer
 

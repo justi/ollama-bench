@@ -448,7 +448,7 @@ przepustowości, gpt-oss/devstral do jakości** - a thinking ma mierzalną cenę
 
 (* 1 przebieg - model usunięty dla miejsca, consistency niemierzona. UWAGA: qwen "fast" i
 "default" mają IDENTYCZNY sampling - temp 0.7, top_k 20, top_p 0.8, repeat 1.05 (jedyna różnica:
-num_ctx; patrz Modelfile.qwen-fast). Różnica reasoning 3.67 vs 4.67 to NIE efekt wariantu, tylko
+num_ctx; patrz legacy/Modelfile.qwen-fast). Różnica reasoning 3.67 vs 4.67 to NIE efekt wariantu, tylko
 NONDETERMINIZM tego samego modelu - dwie próbki z tego samego rozkładu, w granicach szumu ±1.)
 
 Obraz spójny z fast - qwen dominuje wydajność, gpt-oss/devstral wygrywają jakością.
