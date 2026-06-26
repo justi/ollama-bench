@@ -1,5 +1,11 @@
 results_*.json
+answers_*.json
+graded_*.json
 log_*.txt
 __pycache__/
 *.pyc
 _*.py
+_*.sh
+_*.log
+_*.txt
+articles/
