@@ -73,6 +73,13 @@ manifest, not the Modelfiles. `gen_modelfiles.py --check` is a pre-commit guard 
 Build a model with `ollama create qwen36-best -f configs/qwen36.best.Modelfile`. Full default-vs-best
 table: `MODELS_CONFIG.md`.
 
+For long or unattended runs, `run_pinned.sh` wraps `run_bench.py` and can pin the ollama systemd
+service to specific GPU(s) first (restoring afterwards) - useful on multi-GPU hosts, because a big
+model spilling to CPU is not just slower but measurably *degrades quality* (a model that ran fully
+on GPU scored ~0.5 higher on the expert set than the same model offloaded to CPU). Example:
+`./run_pinned.sh --gpus 0,1 --restore-gpus 1 --task code --set --expert --runs 100 --models fleet`
+(`--gpus` needs a systemd ollama service + passwordless sudo; omit it to leave the GPU config alone).
+
 ## Why `num_predict` matters (thinking overflow)
 
 A thinking model generates "thinking tokens" before it answers. With too small a budget those
