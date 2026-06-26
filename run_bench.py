@@ -8,12 +8,14 @@ before running, so the invocation is auditable.
   python3 run_bench.py reasoning all --runs 3
   BENCH_PROMPTS=prompts_en.json python3 run_bench.py reasoning gemma-best   # language passthrough
   python3 run_bench.py code gemma-best --expert
+  python3 run_bench.py code fleet --expert --runs 10   # n=10, one committed command (reproducible)
   python3 run_bench.py code fleet --mutated
   python3 run_bench.py speed fleet
 
 task = reasoning | code | speed. Models: explicit names, 'fleet' (8 main, no deepseek), or 'all'.
-Code set flag (--default/--hard/--expert/--mutated) is passed through; think/num_predict come from
-the manifest. Speed runs one isolated bench_speed call (think=false for all = the throughput convention).
+--runs N (default 3) applies to BOTH reasoning and code (code loops bench_coding N times per model,
+model stays warm between passes). Code set flag (--default/--hard/--expert/--mutated) is passed
+through; think/num_predict come from the manifest. Speed runs one isolated bench_speed call.
 """
 import json
 import os
@@ -84,16 +86,21 @@ def main():
             print(f"[!] no '{task}' config for {m}"); rc = 1; continue
         think = cfg["think"]
         np = str(cfg["num_predict"])
+        print(f"-- {m}  (think={think}, num_predict={np}, runs={runs})")
         if task == "reasoning":
+            # bench_reasoning has native --runs (saves all runs in one answers file)
             lang = prompts.replace("prompts_", "").replace(".json", "")
             out = f"answers_reasoning_{m}_{lang}.json"
             cmd = [sys.executable, "bench_reasoning.py", "--runs", runs,
                    f"--think={think}", f"--num-predict={np}", f"--out={out}", m]
-        else:  # code
-            cmd = [sys.executable, "bench_coding.py"] + set_flags + \
-                  [f"--think={think}", f"--num-predict={np}", m]
-        print(f"-- {m}  (think={think}, num_predict={np})")
-        rc |= run(cmd) or 0
+            rc |= run(cmd) or 0
+        else:  # code - bench_coding is single-pass, so loop it here (model stays warm between passes)
+            base = [sys.executable, "bench_coding.py"] + set_flags + \
+                   [f"--think={think}", f"--num-predict={np}", m]
+            for r in range(int(runs)):
+                if int(runs) > 1:
+                    print(f"   [pass {r + 1}/{runs}]")
+                rc |= run(base) or 0
         print()
     sys.exit(rc)
 
