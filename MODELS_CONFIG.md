@@ -133,12 +133,14 @@ Gemma 4 E4B: 8B total weights, ~4.5B effective (MatFormer activates a sub-networ
 (HF: high temp is best for coding). temp 1.0 vs an earlier (wrong) 0.7 give IDENTICAL scores.
 
 THINKING - IMPORTANT. The official model card ([ollama.com/library/gemma4:e4b](https://ollama.com/library/gemma4:e4b))
-says: "Thinking is enabled by including the `<|think|>` token at the start of the system prompt.
-To disable thinking, remove the token" - i.e. off-by-default via the SYSTEM-PROMPT-TOKEN mechanism.
-But via the ollama API `think` parameter that does NOT hold. Measured (both M1 ollama 0.30.10 AND
-darwine 0.22.1): `think=None` (no flag) makes gemma THINK - it behaves like `think=true` (a 20-token
-classify call returns empty/done=length; reasoning scores match ON). So pass `think=false`
-explicitly for the no-thinking mode; do not rely on the default being off. So the per-task control: code ->
+controls thinking with a `<|think|>` system-prompt token (off by default by removing it). Crucially
+it ALSO flags **E2B/E4B as the EXCEPTION** to the standard disabled-thinking behavior: "For all
+models except for the E2B and E4B variants, if thinking is disabled, the model will still generate
+the tags but with an empty thought block." So E4B (this model) is a documented special case. And
+via the ollama API `think` parameter the default is NOT off: measured (M1 ollama 0.30.10 AND darwine
+0.22.1) `think=None` (no flag) makes E4B THINK - it behaves like `think=true` (a 20-token classify
+call returns empty/done=length; reasoning scores match ON). So pass `think=false` explicitly for the
+no-thinking mode; do not rely on the default being off for E4B. So the per-task control: code ->
 `--think=false` (truly off), reasoning -> leave default or `--think=true` (thinking on).
 
 Reasoning, re-measured cleanly (darwine, n=3, PL): true OFF (`think=false`) = 3.0; thinking ON

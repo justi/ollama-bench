@@ -1,5 +1,5 @@
 # gemma-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
-# Gemma 4 E4B (8B total / ~4.5B effective). Official temp 1.0 (top_k 64, top_p 0.95). THINKING: think=None makes it think (NOT off-by-default via the API on either ollama version) - pass think=false for the real no-thinking mode. Reasoning re-measured: true OFF (think=false) 3.0, thinking ON 5.0 (+2.0). Code uses think=false (truly off, unaffected). Also the neutral cross-family judge.
+# Gemma 4 E4B (8B total / ~4.5B effective). Official temp 1.0 (top_k 64, top_p 0.95). THINKING: E4B is the documented exception (official card flags E2B/E4B); via the ollama API think=None already thinks - pass think=false for the real no-thinking mode. Reasoning: true OFF (think=false) 3.0, ON 5.0 (+2.0). Code uses think=false (unaffected). Also the neutral cross-family judge.
 # ollama create gemma-best -f configs/gemma.best.Modelfile
 FROM gemma4:e4b
 PARAMETER temperature 1.0
