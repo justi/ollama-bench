@@ -124,7 +124,10 @@ def main():
     if think_arg is not None:
         think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
     else:
-        think = False if no_think else None
+        # DEFAULT is explicit think=False, NOT None (None = no flag = model default, which is
+        # thinking-ON for some models like gemma4 E4B and would silently contaminate a code run).
+        # Pass --think=low|high for forced-thinking models (gpt-oss), or --think=none for the default.
+        think = False
     # --num-predict=N: generation token budget. Default 1500, but verbose models (lots of
     # comments) get cut off at this and the code does not parse (SyntaxError = false negative,
     # NOT a model weakness). Measured: unsloth-q4xl done_reason=length at 1500. A higher budget =

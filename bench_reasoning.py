@@ -37,10 +37,14 @@ def main():
     if think_arg is not None:
         think = (False if think_arg == "false"
                  else True if think_arg in ("true", "on")  # enable thinking (e.g. gemma4 E4B)
-                 else None if think_arg in ("none", "default")
+                 else None if think_arg in ("none", "default")  # explicit: let the model decide
                  else think_arg)
     else:
-        think = False if no_think else None
+        # DEFAULT is explicit think=False (thinking OFF), NOT None. think=None would send no flag
+        # and let the model's DEFAULT decide - which is thinking-ON for some models (e.g. gemma4
+        # E4B), silently contaminating an "OFF" baseline. Pass --think=on for thinking, or
+        # --think=none if you really want the model default.
+        think = False
     np_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--num-predict=")), None)
     try:
         num_pred = int(np_arg) if np_arg else 3000

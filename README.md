@@ -65,8 +65,13 @@ python3 run_bench.py speed fleet                        # tok/s, isolated, --no-
 
 `--runs N` (default 3) applies to both reasoning and code. Models: explicit names, `fleet`
 (8 main), or `all`. Per-task thinking comes from the manifest (`--no-think` for Qwen-distill
-code, `--think=low|high` for gpt-oss which cannot be disabled). Truncation detection: a `TR!`
-flag when `done_reason=length`.
+code, `--think=on` for reasoning, `--think=low|high` for gpt-oss which cannot be disabled).
+Truncation detection: a `TR!` flag when `done_reason=length`.
+
+Thinking default: the `bench_*.py` scripts with NO `--think` flag default to **`think=false`**
+(explicit OFF) - NOT the model's own default. `think=None` (no flag at the API) is thinking-ON for
+some models (gemma4 E4B), which once contaminated an "OFF" baseline. So pass `--think=on` for
+thinking explicitly; `--think=none` only if you want the model default. (`run_bench` is always explicit.)
 
 The `configs/*.best.Modelfile` are GENERATED from `models.json` by `gen_modelfiles.py` - edit the
 manifest, not the Modelfiles. `gen_modelfiles.py --check` is a pre-commit guard against drift.

@@ -29,12 +29,19 @@ The Modelfile sets sampling, but NOT thinking. You control thinking separately:
 
 | Situation | How |
 |---|---|
-| For CODE on thinking models (qwen3.6, r1, north) | `ollama run MODEL --think=false "..."` or API `{"think": false}` |
-| For REASONING on thinking models | leave default (thinking ON) |
-| gpt-oss (thinking HARDCODED) | can't be disabled; to minimize: `--think=low` (not false!) |
+| For CODE on thinking models (qwen3.6, r1, north) | `--think=false` (also the bench scripts' DEFAULT) or API `{"think": false}` |
+| For REASONING on thinking models | pass `--think=on` (true) EXPLICITLY - do not rely on "no flag" |
+| gpt-oss (thinking HARDCODED) | can't be disabled; `--think=low` for code, `--think=high` for reasoning |
+
+**DEFAULT = explicit `think=false`.** `bench_reasoning.py` / `bench_coding.py` / `bench_speed.py`
+with NO `--think` flag now send `think=false` (thinking OFF). They do NOT send `think=None`. Why:
+`think=None` means "no flag, use the model's DEFAULT", which is thinking-ON for some models (gemma4
+E4B - the documented E2B/E4B exception) and silently contaminated an "OFF" baseline once. So: thinking
+is OFF unless you ask for it (`--think=on`); use `--think=none` only if you genuinely want the model's
+own default. `run_bench.py` always passes an explicit per-task `--think` from `models.json` regardless.
 
 **Rule:** thinking helps reasoning, but on Qwen-distill (qwen3.6, deepseek-r1) it BREAKS code
-(it gets lost in thinking). Disable it for code, leave it on for logic.
+(it gets lost in thinking). Disable it for code, turn it on (explicitly) for logic.
 
 ## num_ctx 8192 - benchmark profile (note for agents)
 

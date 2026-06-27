@@ -90,7 +90,9 @@ def main():
     if think_arg is not None:
         think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
     else:
-        think = False if "--no-think" in args else None
+        # DEFAULT is explicit think=False (throughput convention), NOT None. None = model default =
+        # thinking-ON for some models, whose thinking tokens then inflate eval_tok_s. --think=none for default.
+        think = False
     models = [a for a in args if not a.startswith("--")]
     if not models:
         print("Usage: python3 bench_speed.py [--big] MODEL [MODEL ...]")
