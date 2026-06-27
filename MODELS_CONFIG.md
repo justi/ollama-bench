@@ -132,10 +132,13 @@ Gemma 4 E4B: 8B total weights, ~4.5B effective (MatFormer activates a sub-networ
 128K native context. temp 1.0 / top_k 64 / top_p 0.95 are Google/Unsloth's recommended sampling
 (HF: high temp is best for coding). temp 1.0 vs an earlier (wrong) 0.7 give IDENTICAL scores.
 
-THINKING - IMPORTANT, the official "off by default" does NOT hold via the API. Measured (both M1
-ollama 0.30.10 AND darwine 0.22.1): `think=None` (no flag) makes gemma THINK - it behaves like
-`think=true` (a 20-token classify call returns empty/done=length; reasoning scores match ON). You
-must pass `think=false` explicitly for the no-thinking mode. So the per-task control: code ->
+THINKING - IMPORTANT. The official model card ([ollama.com/library/gemma4:e4b](https://ollama.com/library/gemma4:e4b))
+says: "Thinking is enabled by including the `<|think|>` token at the start of the system prompt.
+To disable thinking, remove the token" - i.e. off-by-default via the SYSTEM-PROMPT-TOKEN mechanism.
+But via the ollama API `think` parameter that does NOT hold. Measured (both M1 ollama 0.30.10 AND
+darwine 0.22.1): `think=None` (no flag) makes gemma THINK - it behaves like `think=true` (a 20-token
+classify call returns empty/done=length; reasoning scores match ON). So pass `think=false`
+explicitly for the no-thinking mode; do not rely on the default being off. So the per-task control: code ->
 `--think=false` (truly off), reasoning -> leave default or `--think=true` (thinking on).
 
 Reasoning, re-measured cleanly (darwine, n=3, PL): true OFF (`think=false`) = 3.0; thinking ON
