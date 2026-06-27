@@ -10,7 +10,8 @@ import json
 import statistics
 import sys
 
-from _common import generate, gen_tok_s, prompt_tok_s, total_seconds, load_prompts, isolate, list_loaded
+from _common import (generate, gen_tok_s, prompt_tok_s, total_seconds, load_prompts,
+                     isolate, list_loaded, parse_think)
 
 P = load_prompts()
 SMALL_PROMPT = P["speed_small"]
@@ -41,7 +42,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
     except Exception:
         pass
     # Verification: after warmup, memory should hold EXACTLY the measured model.
-    # :latest normalization (grok #4): /api/ps returns e.g. 'deepseek-fast:latest'.
+    # :latest normalization: /api/ps returns e.g. 'deepseek-fast:latest'.
     loaded = list_loaded()
     norm = None if loaded is None else [_strip_latest(x) for x in loaded]
     isolation_ok = bool(iso_confirmed) and norm == [_strip_latest(model)]
@@ -51,7 +52,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
         gr = gen_tok_s(last)
         if gr:
             rates.append(gr)
-        # grok #1: for 'thinking' models (gpt-oss) the content goes into the thinking field, and eval_count
+        # For 'thinking' models (gpt-oss) the content goes into the thinking field, and eval_count
         # counts THINKING tokens. gen_tok_s is then the throughput of the thinking channel, not the output.
         think_chars = len(last.get("thinking") or "")
         resp_chars = len(last.get("response") or "")
@@ -60,7 +61,7 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
     spread = round(max(rates) - min(rates), 1) if len(rates) >= 2 else None
     # response_tok_s_est: for thinking models eval_count counts thinking tokens, so the raw
     # tok/s overstates the throughput of the VISIBLE output. We estimate the output proportionally to
-    # the share of response characters in the whole generated text (grok #1, codex round2 #1).
+    # the share of response characters in the whole generated text.
     resp_est = med
     if med and think_chars > 0 and (resp_chars + think_chars) > 0:
         resp_est = round(med * resp_chars / (resp_chars + think_chars), 1)
@@ -85,14 +86,9 @@ def measure_model(model, prompt, num_predict, runs=RUNS, think=None):
 def main():
     args = sys.argv[1:]
     big = "--big" in args
-    # --think=VALUE: explicit level (false->disable; low/high->string for gpt-oss); otherwise --no-think
-    think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
-    if think_arg is not None:
-        think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
-    else:
-        # DEFAULT is explicit think=False (throughput convention), NOT None. None = model default =
-        # thinking-ON for some models, whose thinking tokens then inflate eval_tok_s. --think=none for default.
-        think = False
+    # Default False (throughput convention): None = model default = thinking-ON for some models,
+    # whose thinking tokens then inflate eval_tok_s. Pass --think=none for the model default.
+    think = parse_think(args)
     models = [a for a in args if not a.startswith("--")]
     if not models:
         print("Usage: python3 bench_speed.py [--big] MODEL [MODEL ...]")
@@ -100,7 +96,7 @@ def main():
 
     prompt = build_big_prompt() if big else SMALL_PROMPT
     # --big: 256 (not 64) generation tokens - at 64, gen tok/s is prone to noise/EOS
-    # after a big prompt (codex #3). Prompt-eval is measured separately via prompt_tok_s anyway.
+    # after a big prompt. Prompt-eval is measured separately via prompt_tok_s anyway.
     num_predict = 256 if big else 300
     mode = "BIG PROMPT (~12k tok)" if big else "small prompt"
     print(f"== bench_speed [{mode}] : warmup + median of {RUNS} runs ==\n")
@@ -131,7 +127,7 @@ def main():
         if "error" in r:
             print(f"{r['model']:<30}{'ERROR':>13}")
             continue
-        # grok #1/#2 codex round2: no isolation = unreliable number; thinking = eval > output
+        # no isolation = unreliable number; thinking = eval > output
         if not r.get("isolated"):
             note = "[!] NO ISOLATION - number uncertain"
         elif r.get("is_thinking"):

@@ -64,7 +64,6 @@ def main():
         sys.exit(1)
 
     print(f"(judge: {JUDGE})\n")
-    summary = {}
     for path in paths:
         data = json.load(open(path, encoding="utf-8"))
         for m, d in data.items():
@@ -82,11 +81,13 @@ def main():
                                     "correct": a["correct"], "answer": a["answer"]})
                 run_scores.append(score)
                 runs_graded.append(details)
+            if not run_scores:
+                print(f"  [!] {m}: no runs to grade - skipped")
+                continue
             mean = sum(run_scores) / len(run_scores)
             maxs = len(d["runs"][0]) if d["runs"] else 0
             lang = d.get("prompts", "?")
             key = f"{m} [{lang}]"
-            summary[key] = (mean, maxs, run_scores)
             print(f"{key:<40} mean {mean:.2f}/{maxs}  runs {run_scores}"
                   + (f"  [!] {judge_errs} judge-errors" if judge_errs else ""))
             if audit:

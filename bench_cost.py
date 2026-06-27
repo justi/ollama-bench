@@ -41,7 +41,7 @@ def main():
         sys.exit(1)
     extra = f", price {PRICE} PLN/kWh" if SHOW_PRICE else ""
     print(f"== estimated energy / 1M OUTPUT tokens - generation only (power {POWER_W} W{extra}) ==")
-    print("   does not include: prompt processing, model load, power differences between models (codex #9)\n")
+    print("   does not include: prompt processing, model load, power differences between models\n")
     head = f"{'model':<30}{'tok/s':>8}{'h/1M':>9}{'kWh/1M':>10}"
     if SHOW_PRICE:
         head += f"{'PLN/1M':>9}"

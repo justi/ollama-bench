@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Canonical benchmark dispatcher - reads models.json (the single source of truth) and runs each
 model with ITS per-task think + num_predict, so invocations are never hand-assembled (no forgotten
---no-think, no guessed temperature, no drifting num_predict). It PRINTS the exact command per model
-before running, so the invocation is auditable.
+--think flag, no guessed temperature, no drifting num_predict). It PRINTS the exact command per
+model before running, so the invocation is auditable.
 
   python3 run_bench.py reasoning gemma-best qwen36-best --runs 10
   python3 run_bench.py reasoning all --runs 3
@@ -58,9 +58,15 @@ def main():
         print(__doc__)
         sys.exit(1)
     task = args[0]
+    if task not in ("reasoning", "code", "speed"):
+        print(f"[!] unknown task '{task}' (expected: reasoning | code | speed)")
+        sys.exit(1)
     runs = "3"
     if "--runs" in args:
         i = args.index("--runs")
+        if i + 1 >= len(args) or not args[i + 1].isdigit() or int(args[i + 1]) < 1:
+            print("[!] --runs requires a positive integer")
+            sys.exit(1)
         runs = args[i + 1]
         args = args[:i] + args[i + 2:]
     set_flags = [a for a in args[1:] if a.startswith("--")]      # e.g. --expert / --mutated
@@ -75,7 +81,7 @@ def main():
     if task == "speed":
         # one isolated call; speed.think is 'false' for all = throughput convention
         miss = [m for m in models if MANIFEST[m]["tasks"]["speed"]["think"] != "false"]
-        flag = ["--no-think"]
+        flag = ["--think=false"]
         print(f"(speed: think=false for all{'; NOTE leveled-thinking models present: ' + ','.join(miss) if miss else ''})")
         sys.exit(run([sys.executable, "bench_speed.py"] + flag + models))
 

@@ -17,7 +17,6 @@ ORDER = ["temperature", "top_k", "top_p", "min_p", "presence_penalty",
 
 
 def fmt(v):
-    # ints stay ints (8192, 0, 3000); floats keep their literal (1.0, 0.7, 1.05)
     return str(v)
 
 

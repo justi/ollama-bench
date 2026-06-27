@@ -51,7 +51,7 @@ run it only on trusted local models.
 
 `models.json` pins, per model, the best sampling params AND the per-task invocation (think +
 num_predict + quirks). `run_bench.py` reads it and runs each model with ITS canonical flags, so
-invocations are never hand-assembled (no forgotten `--no-think`, no guessed temperature, no
+invocations are never hand-assembled (no forgotten `--think` flag, no guessed temperature, no
 drifting num_predict). It prints the exact command per model. **This is the reproducible entry
 point** - prefer it over calling `bench_*.py` directly.
 
@@ -60,11 +60,11 @@ python3 run_bench.py reasoning fleet --runs 10          # reasoning, all 8 best 
 python3 run_bench.py code gemma-best --expert           # one model, expert code set
 python3 run_bench.py code fleet --expert --runs 10      # full code-expert table, n=10 (one command)
 python3 run_bench.py code fleet --mutated               # anti-memorization tasks
-python3 run_bench.py speed fleet                        # tok/s, isolated, --no-think for all
+python3 run_bench.py speed fleet                        # tok/s, isolated, --think=false for all
 ```
 
 `--runs N` (default 3) applies to both reasoning and code. Models: explicit names, `fleet`
-(8 main), or `all`. Per-task thinking comes from the manifest (`--no-think` for Qwen-distill
+(8 main), or `all`. Per-task thinking comes from the manifest (`--think=false` for Qwen-distill
 code, `--think=on` for reasoning, `--think=low|high` for gpt-oss which cannot be disabled).
 Truncation detection: a `TR!` flag when `done_reason=length`.
 

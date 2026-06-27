@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+"""Provenance + self-check for the anti-memorization ("mutated") coding tasks.
+
+Each task is a LeetCode classic with a spec twist that defeats a memorized solution. This script
+holds, per task, the exact prompt, a correct reference solution, and the classic (un-mutated)
+solution. It asserts that the reference passes the hand-checked cases AND that the classic
+solution FAILS them (proving the twist actually bites). Run it to verify the task set; run with
+--write-json to (re)generate mutated_candidates_v2.json. Not used at benchmark runtime - the
+tasks themselves live in prompts_*.json; this is the derivation/trust trail.
+
+  python3 verify_mutated_v2.py               # verify every task
+  python3 verify_mutated_v2.py --write-json  # regenerate mutated_candidates_v2.json
+"""
 import json
 import sys
 from pathlib import Path

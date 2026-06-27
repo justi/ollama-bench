@@ -18,7 +18,7 @@ import signal
 import sys
 from contextlib import contextmanager
 
-from _common import generate, load_prompts
+from _common import generate, load_prompts, parse_think
 
 
 class _Timeout(Exception):
@@ -47,7 +47,7 @@ def extract_code(text):
     """Extracts code from the response: prefers a fenced block with 'def' that parses to AST.
 
     Accepts any language label (python/Python/python3/py...) case-insensitively
-    and validates via ast.parse, so as not to exec prose (codex #8)."""
+    and validates via ast.parse, so as not to exec prose."""
     blocks = re.findall(r"```[a-zA-Z0-9_+-]*\s*(.*?)```", text, re.DOTALL)
     candidates = blocks if blocks else [text]
     for b in candidates:  # first a block with 'def' that parses
@@ -68,7 +68,7 @@ def extract_code(text):
 
 def _norm(x):
     """Canonicalize for comparison: tuples -> lists recursively, so that [(1,6)] == [[1,6]]
-    (codex #4 - a semantically correct result in a different shape must not falsely fail)."""
+    (a semantically correct result in a different shape must not falsely fail)."""
     if isinstance(x, (list, tuple)):
         return [_norm(i) for i in x]
     return x
@@ -114,20 +114,10 @@ def grade_bug(answer, keys):
 
 def main():
     args = sys.argv[1:]
-    no_think = "--no-think" in args  # disables thinking for thinking-models (qwen3.6, deepseek-r1, north)
     hard = "--hard" in args  # hard LeetCode algorithms (sliding window, histogram, DP)
     expert = "--expert" in args  # nontrivial, edge-case, strict specification (separates models)
     mutated = "--mutated" in args  # LeetCode classic + spec mutations (memorized solution = wrong answer)
-    # --think=VALUE: explicit thinking level. gpt-oss CANNOT be disabled (harmony), only low|medium|high;
-    # Qwen-distill: false works. Mapping: false->False, none/default->None, rest (low/high)->string.
-    think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
-    if think_arg is not None:
-        think = False if think_arg == "false" else (None if think_arg in ("none", "default") else think_arg)
-    else:
-        # DEFAULT is explicit think=False, NOT None (None = no flag = model default, which is
-        # thinking-ON for some models like gemma4 E4B and would silently contaminate a code run).
-        # Pass --think=low|high for forced-thinking models (gpt-oss), or --think=none for the default.
-        think = False
+    think = parse_think(args)  # default False (explicit OFF); --think=low|high for gpt-oss
     # --num-predict=N: generation token budget. Default 1500, but verbose models (lots of
     # comments) get cut off at this and the code does not parse (SyntaxError = false negative,
     # NOT a model weakness). Measured: unsloth-q4xl done_reason=length at 1500. A higher budget =
@@ -136,7 +126,7 @@ def main():
     gen_np = int(np_arg) if np_arg else 1500
     models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Usage: python3 bench_coding.py [--no-think] [--hard|--expert|--mutated] [--num-predict=N] MODEL [...]")
+        print("Usage: python3 bench_coding.py [--think=false|low|high] [--hard|--expert|--mutated] [--num-predict=N] MODEL [...]")
         sys.exit(1)
     C = load_prompts()["coding"]
     gen_tasks = (C["generate_mutated"] if mutated else
@@ -178,7 +168,7 @@ def main():
                 ok = False
             bug_pass += 1 if ok else 0
             print(f"    bug {i:<14} {'OK ' if ok else 'NO '}")
-            # we save the full response - auto-grade is sometimes unreliable, manual audit afterwards (codex #5)
+            # we save the full response - auto-grade is sometimes unreliable, manual audit afterwards
             details.append({"task": f"bug{i}", "ok": ok, "answer": ans})
         score = gen_pass + bug_pass
         print(f"  SCORE: {score}/{total}  (code {gen_pass}/{len(gen_tasks)}, bugs {bug_pass}/{len(bug_tasks)})")

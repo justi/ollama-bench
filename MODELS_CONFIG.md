@@ -5,7 +5,7 @@ benchmark's measurements + findings from small-models-local-setup). Ready-made `
 
 > **Single source of truth: [`models.json`](models.json) + [`run_bench.py`](run_bench.py).**
 > Per model it pins the sampling params AND the per-task invocation (think + num_predict). Run
-> benchmarks through the dispatcher so flags are never hand-assembled (no forgotten `--no-think`,
+> benchmarks through the dispatcher so flags are never hand-assembled (no forgotten `--think` flag,
 > no guessed temp, no drifting num_predict): `python3 run_bench.py reasoning fleet --runs 3`,
 > `python3 run_bench.py code gemma-best --expert`, `python3 run_bench.py speed fleet`. It prints
 > the exact command per model. This prose is the human explanation; `models.json` is canonical.

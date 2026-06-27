@@ -29,7 +29,7 @@ def list_loaded():
 
     Returns a list of names, or None when reading /api/ps FAILED. The distinction is
     important: [] means 'memory empty', None means 'unknown' - you must not confuse a failure
-    of the isolation check with correct isolation (codex finding #1)."""
+    of the isolation check with correct isolation."""
     req = urllib.request.Request(OLLAMA_HOST + "/api/ps")
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -52,8 +52,8 @@ def isolate(target, poll_timeout=30):
     Returns True when emptiness is confirmed, False on a read error or timeout.
     Competition for VRAM/RAM lowers tok/s; without this the measurement is unreliable.
 
-    Important (grok #3/#5): a /api/ps read error (None) does NOT end the wait as success -
-    otherwise an API failure would masquerade as emptied memory. unload is asynchronous, hence the poll."""
+    Important: a /api/ps read error (None) does NOT end the wait as success - otherwise an API
+    failure would masquerade as emptied memory. unload is asynchronous, hence the poll."""
     loaded = list_loaded()
     if loaded is None:
         return False  # failed to read state - we don't proceed blindly
@@ -134,3 +134,29 @@ def total_seconds(resp):
 
 def word_count(resp):
     return len((resp.get("response") or "").split())
+
+
+def parse_think(args, default=False):
+    """Resolve a --think=VALUE flag to an Ollama 'think' value (shared by every bench script
+    so the parsing never drifts between them).
+
+      --think=false           -> False  (thinking OFF)
+      --think=true | on       -> True   (thinking ON)
+      --think=none | default  -> None   (omit the flag entirely = the model's own default)
+      --think=low|medium|high -> the string (gpt-oss reasoning_effort levels; cannot be disabled)
+      no --think flag         -> `default`
+
+    The default is explicit False, NOT None: None omits the flag and lets the model decide,
+    which is thinking-ON for some models (gemma4 E4B) and silently contaminates an "OFF"
+    baseline. Pass --think=on for thinking, --think=none if you really want the model default.
+    """
+    arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
+    if arg is None:
+        return default
+    if arg == "false":
+        return False
+    if arg in ("true", "on"):
+        return True
+    if arg in ("none", "default"):
+        return None
+    return arg  # low | medium | high passthrough (gpt-oss)

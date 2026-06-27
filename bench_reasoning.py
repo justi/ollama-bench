@@ -13,7 +13,7 @@ import json
 import os
 import sys
 
-from _common import generate, load_prompts
+from _common import generate, load_prompts, parse_think
 
 PUZZLES = [(p["q"], p["correct"]) for p in load_prompts()["reasoning"]]
 
@@ -32,19 +32,7 @@ def main():
             print("--runs must be >= 1")
             sys.exit(1)
         args = args[:idx] + args[idx + 2:]
-    no_think = "--no-think" in args
-    think_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--think=")), None)
-    if think_arg is not None:
-        think = (False if think_arg == "false"
-                 else True if think_arg in ("true", "on")  # enable thinking (e.g. gemma4 E4B)
-                 else None if think_arg in ("none", "default")  # explicit: let the model decide
-                 else think_arg)
-    else:
-        # DEFAULT is explicit think=False (thinking OFF), NOT None. think=None would send no flag
-        # and let the model's DEFAULT decide - which is thinking-ON for some models (e.g. gemma4
-        # E4B), silently contaminating an "OFF" baseline. Pass --think=on for thinking, or
-        # --think=none if you really want the model default.
-        think = False
+    think = parse_think(args)  # default False (explicit OFF); --think=on for thinking
     np_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--num-predict=")), None)
     try:
         num_pred = int(np_arg) if np_arg else 3000
@@ -55,7 +43,7 @@ def main():
     out_path = out_arg or "answers_reasoning.json"
     models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Usage: python3 bench_reasoning.py [--runs N] [--no-think|--think=low] "
+        print("Usage: python3 bench_reasoning.py [--runs N] [--think=on|false|low|high] "
               "[--num-predict=N] [--out=FILE] MODEL [...]")
         print("Generates answers only. Grade them with: python3 grade_reasoning.py <FILE>")
         sys.exit(1)
