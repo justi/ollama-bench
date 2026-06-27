@@ -130,15 +130,21 @@ stability (range 0, reasoning 5.0). Small (9 GB), good quality. No thinking.
 
 Gemma 4 E4B: 8B total weights, ~4.5B effective (MatFormer activates a sub-network), Q4_K_M,
 128K native context. temp 1.0 / top_k 64 / top_p 0.95 are Google/Unsloth's recommended sampling
-(HF: high temp is best for coding). Thinking is OFF by default for E4B (enable with think=true /
-a <|think|> system-prompt token). Measured: temp 1.0 vs an earlier (wrong) 0.7 give IDENTICAL
-scores - reasoning PL 5.50 / EN 5.80, code 5/5 default, 5/9 expert, 7/7 mutated - robust to temp.
-Thinking ON helps reasoning, like the other thinking models: PL 5.50 -> 6.00 (6/6 x3, n=3), EN
-unchanged (already near ceiling). So best reasoning mode = thinking ON (steer per task: off for
-code, on for reasoning). Speed on M1 Max: 48.9 tok/s (median of 3, isolated) = 0.256 kWh/1M -
-mid-pack (faster than qwen36, slower than gpt-oss/north; not the efficiency king, that is qwen-coder).
+(HF: high temp is best for coding). temp 1.0 vs an earlier (wrong) 0.7 give IDENTICAL scores.
 
-Strong for its compute. Reasoning: PL 5.5 / EN 5.8, beating phi4/devstral/qwen-coder. Code:
+THINKING - IMPORTANT, the official "off by default" does NOT hold via the API. Measured (both M1
+ollama 0.30.10 AND darwine 0.22.1): `think=None` (no flag) makes gemma THINK - it behaves like
+`think=true` (a 20-token classify call returns empty/done=length; reasoning scores match ON). You
+must pass `think=false` explicitly for the no-thinking mode. So the per-task control: code ->
+`--think=false` (truly off), reasoning -> leave default or `--think=true` (thinking on).
+
+Reasoning, re-measured cleanly (darwine, n=3, PL): true OFF (`think=false`) = 3.0; thinking ON
+(`think=true` OR default `None`) = 5.0. So thinking adds ~+2.0 for gemma. The earlier "OFF 5.5 ->
+ON 6.0 (+0.5)" was WRONG - that "OFF" was `think=None` = already thinking. Code (`--think=false`,
+truly off) is unaffected: 5/9 expert, 5/5 default, 6/6 hard, 7/7 mutated. Speed on M1 Max: 48.9
+tok/s (median of 3, isolated) = 0.256 kWh/1M - mid-pack (faster than qwen36, slower than gpt-oss/north).
+
+Strong for its compute. Reasoning (with thinking, i.e. think=None/on): PL 5.5 / EN 5.8, beating phi4/devstral/qwen-coder. Code:
 expert 5/9 (n=3), default 5/5, hard 6/6, mutated 7/7 (ties qwen36, beats the rest). Note on the
 "small model" framing: by ACTIVE compute gemma (~4.5B effective) is comparable to or larger than
 the qwen MoEs (qwen36 35b-a3b and qwen-coder 30b are ~3B active), so matching them is expected;
