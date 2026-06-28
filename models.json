@@ -59,7 +59,7 @@
         "reasoning": {"think": "false", "num_predict": 3000},
         "speed":     {"think": "false"}
       },
-      "notes": "temp 0.7 measured more stable than native higher temp on reasoning (range 4 -> 0). Best reasoner (5.33), worst code."
+      "notes": "temp 0.7 measured more stable than native higher temp on reasoning (range 4 -> 0). Top logic-puzzle reasoner (5.33), worst code."
     },
     "devstral-best": {
       "base": "devstral-small-2:24b-fast",
@@ -71,7 +71,7 @@
         "reasoning": {"think": "false", "num_predict": 3000},
         "speed":     {"think": "false"}
       },
-      "notes": "Base is the benchmarked devstral-small-2:24b-fast (NOT public devstral:24b). Slow (~10 tok/s), strong reasoning."
+      "notes": "Base is the benchmarked devstral-small-2:24b-fast (NOT public devstral:24b). Slow (~14 tok/s cold), strong non-thinking reasoner (5.0)."
     },
     "unsloth-q4xl-best": {
       "base": "gurubot/Qwen3.5-35B-A3B-GGUF-unsloth-nothink:UD-Q4_K_XL",

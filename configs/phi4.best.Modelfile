@@ -1,5 +1,5 @@
 # phi4-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
-# temp 0.7 measured more stable than native higher temp on reasoning (range 4 -> 0). Best reasoner (5.33), worst code.
+# temp 0.7 measured more stable than native higher temp on reasoning (range 4 -> 0). Top logic-puzzle reasoner (5.33), worst code.
 # ollama create phi4-best -f configs/phi4.best.Modelfile
 FROM phi4:14b
 PARAMETER temperature 0.7
