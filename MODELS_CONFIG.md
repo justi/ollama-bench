@@ -71,7 +71,7 @@ at 1500 = 0 words of visible answer, measured). For `--think=false` (code) it's 
 
 Best ≈ default - qwen-coder is well configured out of the box. The only change is num_ctx
 (on 64 GB Ollama gives 256K = a large KV cache; 8192 is enough and frees up RAM). No thinking.
-Fastest output (~62 tok/s), code 5/9 expert (2nd place).
+Fast output (~61 tok/s, cold) and the most efficient overall; code 5/9 expert. north has the raw-fastest throughput (64.8 tok/s) but weaker code (4/9).
 
 ## gpt-oss:20b - thinking HARDCODED (harmony), reasoning_effort
 
@@ -86,7 +86,7 @@ temp=0 gives 100% loops (measured) - NEVER set 0. num_predict 3000 protects agai
 answer truncation (thinking eats the budget). You can't disable thinking - you control the level only
 via `--think=low|medium|high` (CLI/API), NOT via `PARAMETER reasoning_effort` in the Modelfile.
 The default level is `medium`. `configs/gpt-oss.best.Modelfile` is the CODING profile (temp 0.3); for
-reasoning use temp 1.0 + `--think=high`. Reasoning 5.0 (stable), code 4/9.
+reasoning use temp 1.0 + `--think=high`. Reasoning 5.0 (stable), code 5/9 (n=100 expert; the older n=3 put it at 4).
 
 ## devstral-small-2:24b-fast - Mistral, no thinking
 
@@ -98,8 +98,8 @@ reasoning use temp 1.0 + `--think=high`. Reasoning 5.0 (stable), code 4/9.
 
 The base is actually the benchmarked tag `devstral-small-2:24b-fast` (default num_ctx 65536, temp
 0.15), NOT the public `devstral:24b` (a different artifact, 128K context). Low temperature favors
-determinism. num_ctx 8192 instead of 65536 (saves ~17 GB RAM). Slow output (~12 tok/s),
-but the best reasoning (5.33). No thinking.
+determinism. num_ctx 8192 instead of 65536 (saves ~17 GB RAM). Slow output (~14 tok/s, cold;
+the earlier ~12 was a hot measurement). Strong non-thinking reasoner (5.0). No thinking.
 
 ## north-mini-code-1.0 - Cohere MoE coder (30B/3B), THINKING
 
@@ -113,8 +113,8 @@ but the best reasoning (5.33). No thinking.
 
 NOTE: north is a thinking model. `configs/north.best.Modelfile` is the CODING profile (top_p 0.8). For
 CODE use `--think=false` - otherwise the code gets lost in thinking (on hard tasks). For reasoning
-leave thinking ON and override `top_p 0.95` at runtime. Fastest output without thinking (~65 tok/s),
-but weak on non-trivial code (to be verified with no-think).
+leave thinking ON and override `top_p 0.95` at runtime. Fastest raw throughput (64.8 tok/s, cold),
+but weak on non-trivial code (4/9).
 
 ## phi4:14b - Microsoft, no thinking
 
@@ -124,7 +124,7 @@ but weak on non-trivial code (to be verified with no-think).
 | num_ctx | (auto) | 8192 |
 
 phi4 at its native (higher) temperature is chaotic on reasoning (range 4); temp 0.7 gives
-stability (range 0, reasoning 5.0). Small (9 GB), good quality. No thinking.
+stability (range 0); reasoning 5.33 on the logic puzzles, top of that set. Small (9 GB), good quality. No thinking.
 
 ## gemma4:e4b - Google Gemma 4 E4B, thinking-capable (off by default)
 
