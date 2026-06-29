@@ -88,11 +88,12 @@ on GPU scored ~0.5 higher on the expert set than the same model offloaded to CPU
 ## Why `num_predict` matters (thinking overflow)
 
 A thinking model generates "thinking tokens" before it answers. With too small a budget those
-tokens eat the whole allowance before the model reaches the actual answer. Measured on gpt-oss:
-at `num_predict=1500` the visible answer was **0 words** (`done_reason=length`, all 1500 tokens
-spent on thinking); at `3000` the same answer grew to **512 words**. Time rose from ~64 s to
-~93 s - an acceptable price for the answer existing at all. This is why the gpt-oss best config
-sets `num_predict 3000`.
+tokens eat the whole allowance before the model reaches the actual answer. In the `bench_numpredict.py`
+run, raising gpt-oss from `num_predict=1500` to `3000` grew the answer from 366 to 494 words (~42 s
+to ~49 s). On harder prompts the effect is worse than "shorter": the whole answer can vanish - at
+`num_predict=1500`, **0 visible words** (`done_reason=length`, every token spent on thinking) until
+the budget is raised. Exact counts are prompt-dependent and noisy. This is why the gpt-oss best
+config sets `num_predict 3000` (and the per-task code budget is 4000).
 
 ## Repo structure
 

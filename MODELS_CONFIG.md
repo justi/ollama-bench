@@ -86,7 +86,8 @@ temp=0 gives 100% loops (measured) - NEVER set 0. num_predict 3000 protects agai
 answer truncation (thinking eats the budget). You can't disable thinking - you control the level only
 via `--think=low|medium|high` (CLI/API), NOT via `PARAMETER reasoning_effort` in the Modelfile.
 The default level is `medium`. `configs/gpt-oss.best.Modelfile` is the CODING profile (temp 0.3); for
-reasoning use temp 1.0 + `--think=high`. Reasoning 5.0 (stable), code 5/9 (n=100 expert; the older n=3 put it at 4).
+reasoning use temp 1.0 + `--think=high`. Reasoning 4.33 (`--think=high`; forced thinking throttles
+the visible output), code 5/9 (n=100 expert; the older n=3 put it at 4).
 
 ## devstral-small-2:24b-fast - Mistral, no thinking
 
