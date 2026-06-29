@@ -153,8 +153,8 @@ no-thinking mode; do not rely on the default being off for E4B. So the per-task 
 Reasoning, re-measured cleanly (darwine, n=3, PL): true OFF (`think=false`) = 3.0; thinking ON
 (`think=true` OR default `None`) = 5.0. So thinking adds ~+2.0 for gemma. The earlier "OFF 5.5 ->
 ON 6.0 (+0.5)" was WRONG - that "OFF" was `think=None` = already thinking. Code (`--think=false`,
-truly off) is unaffected: 5/9 expert, 5/5 default, 6/6 hard, 7/7 mutated. Speed on M1 Max: 48.9
-tok/s (median of 3, isolated) = 0.256 kWh/1M - mid-pack (faster than qwen36, slower than gpt-oss/north).
+truly off) is unaffected: 5/9 expert, 5/5 default, 6/6 hard, 7/7 mutated. Speed on M1 Max: 49.1
+tok/s (median of 3, isolated) = 0.255 kWh/1M - mid-pack (faster than qwen36, slower than gpt-oss/north).
 
 Strong for its compute. Reasoning (with thinking, i.e. think=None/on): PL 5.5 / EN 5.8, beating phi4/devstral/qwen-coder. Code:
 expert 5/9 (n=3), default 5/5, hard 6/6, mutated 7/7 (ties qwen36, beats the rest). Note on the
