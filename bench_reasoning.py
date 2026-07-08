@@ -36,7 +36,7 @@ def main():
     try:
         options = parse_options(args)
     except ValueError as e:
-        print(e)
+        print(e, file=sys.stderr)
         sys.exit(1)
     np_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--num-predict=")), None)
     try:

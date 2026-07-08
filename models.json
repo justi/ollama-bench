@@ -1,5 +1,5 @@
 {
-  "_doc": "SINGLE SOURCE OF TRUTH for how each model is configured AND invoked per task. Scripts read this (via run_bench.py) so invocations are canonical - no ad-hoc flags, nothing forgotten. think/num_predict are the per-task knobs; params document the best sampling baked into configs/*.Modelfile. think values are exactly what --think= expects: false | true | low | high. 'thinking': controllable | none | forced (gpt-oss: cannot be disabled, only leveled). reasoning num_predict is high for thinking models (thinking eats budget; runaway-safe). speed always think=false (throughput convention, matches the energy table).",
+  "_doc": "SINGLE SOURCE OF TRUTH for how each model is configured AND invoked per task. Scripts read this (via run_bench.py) so invocations are canonical - no ad-hoc flags, nothing forgotten. Per-task knobs include think, num_predict, and scalar Ollama option overrides such as temperature/top_p; params document the best sampling baked into configs/*.Modelfile. think values are exactly what --think= expects: false | true | low | high. 'thinking': controllable | none | forced (gpt-oss: cannot be disabled, only leveled). reasoning num_predict is high for thinking models (thinking eats budget; runaway-safe). speed always think=false (throughput convention, matches the energy table).",
   "models": {
     "qwen36-best": {
       "base": "qwen3.6:35b-a3b",
@@ -35,7 +35,7 @@
         "reasoning": {"think": "high", "num_predict": 6000, "temperature": 1.0},
         "speed":     {"think": "low"}
       },
-      "notes": "Thinking HARDCODED (harmony) - cannot disable, only level. Code profile temp 0.3; reasoning wants temp 1.0 (needs a separate Modelfile variant). NEVER temp 0 (100% loops). speed uses think=low (its floor)."
+      "notes": "Thinking HARDCODED (harmony) - cannot disable, only level. Code profile temp 0.3; run_bench overrides reasoning calls to temp 1.0. NEVER temp 0 (100% loops). speed uses think=low (its floor)."
     },
     "north-best": {
       "base": "north-mini-code-1.0",
@@ -47,7 +47,7 @@
         "reasoning": {"think": "true",  "num_predict": 6000, "top_p": 0.95},
         "speed":     {"think": "false"}
       },
-      "notes": "Thinking model. Code profile top_p 0.8; reasoning wants top_p 0.95 (needs a separate Modelfile variant)."
+      "notes": "Thinking model. Code profile top_p 0.8; run_bench overrides reasoning calls to top_p 0.95."
     },
     "phi4-best": {
       "base": "phi4:14b",

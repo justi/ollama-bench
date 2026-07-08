@@ -22,6 +22,8 @@ import os
 import subprocess
 import sys
 
+from _common import OLLAMA_OPTION_KEYS, RESERVED_OPTION_KEYS
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 MANIFEST = json.load(open(os.path.join(HERE, "models.json")))["models"]
 FLEET = ["qwen36-best", "qwen-coder-best", "gpt-oss-best", "north-best",
@@ -54,8 +56,14 @@ def run(cmd):
 
 def option_flags(cfg):
     """Forward per-task Ollama option overrides from models.json."""
-    skip = {"think", "num_predict"}
-    return [f"--option={k}={v}" for k, v in cfg.items() if k not in skip]
+    flags = []
+    for k, v in cfg.items():
+        if k in RESERVED_OPTION_KEYS:
+            continue
+        if k not in OLLAMA_OPTION_KEYS:
+            raise ValueError(f"unknown task option '{k}' in models.json")
+        flags.append(f"--option={k}={v}")
+    return flags
 
 
 def main():
@@ -98,17 +106,24 @@ def main():
             print(f"[!] no '{task}' config for {m}"); rc = 1; continue
         think = cfg["think"]
         np = str(cfg["num_predict"])
-        print(f"-- {m}  (think={think}, num_predict={np}, runs={runs})")
+        try:
+            opts = option_flags(cfg)
+        except ValueError as e:
+            print(f"[!] {m}: {e}", file=sys.stderr)
+            rc = 1
+            continue
+        opt_note = f", options={opts}" if opts else ""
+        print(f"-- {m}  (think={think}, num_predict={np}, runs={runs}{opt_note})")
         if task == "reasoning":
             # bench_reasoning has native --runs (saves all runs in one answers file)
             lang = prompts.replace("prompts_", "").replace(".json", "")
             out = f"answers_reasoning_{m}_{lang}.json"
             cmd = [sys.executable, "bench_reasoning.py", "--runs", runs,
-                   f"--think={think}", f"--num-predict={np}", f"--out={out}"] + option_flags(cfg) + [m]
+                   f"--think={think}", f"--num-predict={np}", f"--out={out}"] + opts + [m]
             rc |= run(cmd) or 0
         else:  # code - bench_coding is single-pass, so loop it here (model stays warm between passes)
             base = [sys.executable, "bench_coding.py"] + set_flags + \
-                   [f"--think={think}", f"--num-predict={np}"] + option_flags(cfg) + [m]
+                   [f"--think={think}", f"--num-predict={np}"] + opts + [m]
             for r in range(int(runs)):
                 if int(runs) > 1:
                     print(f"   [pass {r + 1}/{runs}]")

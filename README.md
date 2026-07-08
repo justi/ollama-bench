@@ -49,11 +49,12 @@ run it only on trusted local models.
 
 ## Canonical pipeline: `models.json` + `run_bench.py` (single source of truth)
 
-`models.json` pins, per model, the best sampling params AND the per-task invocation (think +
-num_predict + quirks). `run_bench.py` reads it and runs each model with ITS canonical flags, so
-invocations are never hand-assembled (no forgotten `--think` flag, no guessed temperature, no
-drifting num_predict). It prints the exact command per model. **This is the reproducible entry
-point** - prefer it over calling `bench_*.py` directly.
+`models.json` pins, per model, the best sampling params AND the per-task invocation (`think`,
+`num_predict`, and scalar Ollama option overrides like `temperature` / `top_p`). `run_bench.py`
+reads it and runs each model with ITS canonical flags, so invocations are never hand-assembled
+(no forgotten `--think` flag, no guessed temperature, no drifting num_predict). It prints the exact
+command per model. **This is the reproducible entry point** - prefer it over calling `bench_*.py`
+directly.
 
 ```bash
 python3 run_bench.py reasoning fleet --runs 10          # reasoning, all 8 best models, n=10
@@ -66,7 +67,13 @@ python3 run_bench.py speed fleet                        # tok/s, isolated, --thi
 `--runs N` (default 3) applies to both reasoning and code. Models: explicit names, `fleet`
 (8 main), or `all`. Per-task thinking comes from the manifest (`--think=false` for Qwen-distill
 code, `--think=on` for reasoning, `--think=low|high` for gpt-oss which cannot be disabled).
-Truncation detection: a `TR!` flag when `done_reason=length`.
+Per-task sampling overrides also come from the manifest; currently this matters for `gpt-oss-best`
+reasoning (`temperature=1.0`) and `north-best` reasoning (`top_p=0.95`). Truncation detection: a
+`TR!` flag when `done_reason=length`.
+
+Note on comparability: runs made before `run_bench.py` started forwarding per-task sampling
+overrides used the Modelfile defaults for those two reasoning profiles. Re-benchmark gpt-oss/north
+reasoning before comparing old and new answer files.
 
 Thinking default: the `bench_*.py` scripts with NO `--think` flag default to **`think=false`**
 (explicit OFF) - NOT the model's own default. `think=None` (no flag at the API) is thinking-ON for
@@ -97,7 +104,7 @@ config sets `num_predict 3000` (and the per-task code budget is 4000).
 
 ## Repo structure
 
-- `models.json` - single source of truth (params + per-task invocation per model)
+- `models.json` - single source of truth (params + per-task invocation/options per model)
 - `run_bench.py` - canonical dispatcher (reads `models.json`); `gen_modelfiles.py` - generates `configs/` from it
 - `bench_*.py`, `grade_reasoning.py`, `_common.py` - measurement + grading scripts
 - `prompts_pl.json` / `prompts_en.json` - all test tasks in Polish (default) and English.

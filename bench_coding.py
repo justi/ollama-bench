@@ -121,7 +121,7 @@ def main():
     try:
         options = parse_options(args)
     except ValueError as e:
-        print(e)
+        print(e, file=sys.stderr)
         sys.exit(1)
     # --num-predict=N: generation token budget. Default 1500, but verbose models (lots of
     # comments) get cut off at this and the code does not parse (SyntaxError = false negative,
@@ -178,7 +178,9 @@ def main():
             details.append({"task": f"bug{i}", "ok": ok, "answer": ans})
         score = gen_pass + bug_pass
         print(f"  SCORE: {score}/{total}  (code {gen_pass}/{len(gen_tasks)}, bugs {bug_pass}/{len(bug_tasks)})")
-        results[m] = {"score": score, "max": total, "gen": gen_pass, "bug": bug_pass, "details": details}
+        results[m] = {"score": score, "max": total, "gen": gen_pass, "bug": bug_pass,
+                      "think": think, "num_predict": gen_np, "bug_num_predict": 800,
+                      "options": options, "details": details}
 
     print("\n== SUMMARY (code quality) ==")
     for m, r in results.items():

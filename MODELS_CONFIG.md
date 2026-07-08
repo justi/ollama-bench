@@ -4,11 +4,16 @@ For each model: DEFAULT parameters (from `ollama show --parameters`) and BEST (f
 benchmark's measurements + findings from small-models-local-setup). Ready-made `Modelfile` files in `configs/`.
 
 > **Single source of truth: [`models.json`](models.json) + [`run_bench.py`](run_bench.py).**
-> Per model it pins the sampling params AND the per-task invocation (think + num_predict). Run
-> benchmarks through the dispatcher so flags are never hand-assembled (no forgotten `--think` flag,
-> no guessed temp, no drifting num_predict): `python3 run_bench.py reasoning fleet --runs 3`,
+> Per model it pins the sampling params AND the per-task invocation (`think`, `num_predict`, and
+> scalar Ollama option overrides such as `temperature` / `top_p`). Run benchmarks through the
+> dispatcher so flags are never hand-assembled (no forgotten `--think` flag, no guessed temp, no
+> drifting num_predict): `python3 run_bench.py reasoning fleet --runs 3`,
 > `python3 run_bench.py code gemma-best --expert`, `python3 run_bench.py speed fleet`. It prints
 > the exact command per model. This prose is the human explanation; `models.json` is canonical.
+
+Per-task sampling overrides change the benchmark baseline. In particular, `gpt-oss-best` reasoning
+now runs with `temperature=1.0` and `north-best` reasoning with `top_p=0.95`; older answer files
+generated through a dispatcher that ignored those overrides used the Modelfile defaults instead.
 
 ## How to apply the best config
 
@@ -85,8 +90,8 @@ Fast output (~61 tok/s, cold) and the most efficient overall; code 5/9 expert. n
 temp=0 gives 100% loops (measured) - NEVER set 0. num_predict 3000 protects against
 answer truncation (thinking eats the budget). You can't disable thinking - you control the level only
 via `--think=low|medium|high` (CLI/API), NOT via `PARAMETER reasoning_effort` in the Modelfile.
-The default level is `medium`. `configs/gpt-oss.best.Modelfile` is the CODING profile (temp 0.3); for
-reasoning use temp 1.0 + `--think=high`. Reasoning 4.33 (`--think=high`; forced thinking throttles
+The default level is `medium`. `configs/gpt-oss.best.Modelfile` is the CODING profile (temp 0.3);
+`run_bench.py` overrides reasoning calls to temp 1.0 + `--think=high`. Reasoning 4.33 (`--think=high`; forced thinking throttles
 the visible output), code 5/9 (n=100 expert; the older n=3 put it at 4).
 
 ## devstral-small-2:24b-fast - Mistral, no thinking
@@ -113,8 +118,8 @@ the earlier ~12 was a hot measurement). Strong non-thinking reasoner (5.0). No t
 | thinking | ON | **`--think=false`** | ON |
 
 NOTE: north is a thinking model. `configs/north.best.Modelfile` is the CODING profile (top_p 0.8). For
-CODE use `--think=false` - otherwise the code gets lost in thinking (on hard tasks). For reasoning
-leave thinking ON and override `top_p 0.95` at runtime. Fastest raw throughput (64.8 tok/s, cold),
+CODE use `--think=false` - otherwise the code gets lost in thinking (on hard tasks). `run_bench.py`
+overrides reasoning calls to thinking ON and `top_p 0.95`. Fastest raw throughput (64.8 tok/s, cold),
 but weak on non-trivial code (4/9).
 
 ## phi4:14b - Microsoft, no thinking

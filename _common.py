@@ -5,6 +5,36 @@ import time
 import urllib.request
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_OPTION_KEYS = {
+    "frequency_penalty",
+    "f16_kv",
+    "low_vram",
+    "main_gpu",
+    "mirostat",
+    "mirostat_eta",
+    "mirostat_tau",
+    "min_p",
+    "num_batch",
+    "num_ctx",
+    "num_gpu",
+    "num_keep",
+    "num_thread",
+    "numa",
+    "penalize_newline",
+    "presence_penalty",
+    "repeat_last_n",
+    "repeat_penalty",
+    "seed",
+    "temperature",
+    "tfs_z",
+    "top_k",
+    "top_p",
+    "typical_p",
+    "use_mlock",
+    "use_mmap",
+    "vocab_only",
+}
+RESERVED_OPTION_KEYS = {"num_predict", "think"}
 
 _PROMPTS = None
 
@@ -187,9 +217,17 @@ def parse_options(args):
             continue
         item = a.split("=", 1)[1]
         if "=" not in item:
-            raise ValueError("--option requires key=value")
+            raise ValueError(f"{a}: --option requires key=value")
         key, raw = item.split("=", 1)
         if not key:
-            raise ValueError("--option requires a non-empty key")
+            raise ValueError(f"{a}: --option requires a non-empty key")
+        if raw == "":
+            raise ValueError(f"{a}: --option requires a non-empty value")
+        if key in RESERVED_OPTION_KEYS:
+            raise ValueError(f"{a}: use the dedicated flag for {key}")
+        if key not in OLLAMA_OPTION_KEYS:
+            raise ValueError(f"{a}: unknown Ollama option '{key}'")
+        if key in opts:
+            raise ValueError(f"{a}: duplicate Ollama option '{key}'")
         opts[key] = _parse_option_value(raw)
     return opts
