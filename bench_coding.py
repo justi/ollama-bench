@@ -18,7 +18,7 @@ import signal
 import sys
 from contextlib import contextmanager
 
-from _common import generate, load_prompts, parse_think
+from _common import generate, load_prompts, parse_options, parse_think
 
 
 class _Timeout(Exception):
@@ -118,6 +118,11 @@ def main():
     expert = "--expert" in args  # nontrivial, edge-case, strict specification (separates models)
     mutated = "--mutated" in args  # LeetCode classic + spec mutations (memorized solution = wrong answer)
     think = parse_think(args)  # default False (explicit OFF); --think=low|high for gpt-oss
+    try:
+        options = parse_options(args)
+    except ValueError as e:
+        print(e)
+        sys.exit(1)
     # --num-predict=N: generation token budget. Default 1500, but verbose models (lots of
     # comments) get cut off at this and the code does not parse (SyntaxError = false negative,
     # NOT a model weakness). Measured: unsloth-q4xl done_reason=length at 1500. A higher budget =
@@ -126,7 +131,8 @@ def main():
     gen_np = int(np_arg) if np_arg else 1500
     models = [a for a in args if not a.startswith("--")]
     if not models:
-        print("Usage: python3 bench_coding.py [--think=false|low|high] [--hard|--expert|--mutated] [--num-predict=N] MODEL [...]")
+        print("Usage: python3 bench_coding.py [--think=false|low|high] [--hard|--expert|--mutated] "
+              "[--num-predict=N] [--option=key=value] MODEL [...]")
         sys.exit(1)
     C = load_prompts()["coding"]
     gen_tasks = (C["generate_mutated"] if mutated else
@@ -143,7 +149,7 @@ def main():
         for t in gen_tasks:
             trunc = False
             try:
-                r = generate(m, t["prompt"], num_predict=gen_np, think=think)
+                r = generate(m, t["prompt"], num_predict=gen_np, options=options, think=think)
                 # done_reason=='length' = response cut off by the budget (false negative risk)
                 trunc = r.get("done_reason") == "length"
                 code = extract_code(r.get("response") or "")
@@ -161,7 +167,7 @@ def main():
         for i, t in enumerate(bug_tasks, 1):
             ans = ""
             try:
-                r = generate(m, t["prompt"], num_predict=800, think=think)
+                r = generate(m, t["prompt"], num_predict=800, options=options, think=think)
                 ans = r.get("response") or ""
                 ok = grade_bug(ans, t["keys"])
             except Exception:

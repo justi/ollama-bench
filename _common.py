@@ -160,3 +160,36 @@ def parse_think(args, default=False):
     if arg in ("none", "default"):
         return None
     return arg  # low | medium | high passthrough (gpt-oss)
+
+
+def _parse_option_value(raw):
+    """Parse CLI option values into Ollama option types."""
+    low = raw.lower()
+    if low == "true":
+        return True
+    if low == "false":
+        return False
+    try:
+        return int(raw)
+    except ValueError:
+        pass
+    try:
+        return float(raw)
+    except ValueError:
+        return raw
+
+
+def parse_options(args):
+    """Parse repeated --option=key=value flags into an Ollama options dict."""
+    opts = {}
+    for a in args:
+        if not a.startswith("--option="):
+            continue
+        item = a.split("=", 1)[1]
+        if "=" not in item:
+            raise ValueError("--option requires key=value")
+        key, raw = item.split("=", 1)
+        if not key:
+            raise ValueError("--option requires a non-empty key")
+        opts[key] = _parse_option_value(raw)
+    return opts

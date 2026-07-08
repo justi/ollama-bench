@@ -52,6 +52,12 @@ def run(cmd):
     return subprocess.call(cmd, cwd=HERE)
 
 
+def option_flags(cfg):
+    """Forward per-task Ollama option overrides from models.json."""
+    skip = {"think", "num_predict"}
+    return [f"--option={k}={v}" for k, v in cfg.items() if k not in skip]
+
+
 def main():
     args = sys.argv[1:]
     if len(args) < 2:
@@ -98,11 +104,11 @@ def main():
             lang = prompts.replace("prompts_", "").replace(".json", "")
             out = f"answers_reasoning_{m}_{lang}.json"
             cmd = [sys.executable, "bench_reasoning.py", "--runs", runs,
-                   f"--think={think}", f"--num-predict={np}", f"--out={out}", m]
+                   f"--think={think}", f"--num-predict={np}", f"--out={out}"] + option_flags(cfg) + [m]
             rc |= run(cmd) or 0
         else:  # code - bench_coding is single-pass, so loop it here (model stays warm between passes)
             base = [sys.executable, "bench_coding.py"] + set_flags + \
-                   [f"--think={think}", f"--num-predict={np}", m]
+                   [f"--think={think}", f"--num-predict={np}"] + option_flags(cfg) + [m]
             for r in range(int(runs)):
                 if int(runs) > 1:
                     print(f"   [pass {r + 1}/{runs}]")

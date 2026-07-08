@@ -13,7 +13,7 @@ import json
 import os
 import sys
 
-from _common import generate, load_prompts, parse_think
+from _common import generate, load_prompts, parse_options, parse_think
 
 PUZZLES = [(p["q"], p["correct"]) for p in load_prompts()["reasoning"]]
 
@@ -33,6 +33,11 @@ def main():
             sys.exit(1)
         args = args[:idx] + args[idx + 2:]
     think = parse_think(args)  # default False (explicit OFF); --think=on for thinking
+    try:
+        options = parse_options(args)
+    except ValueError as e:
+        print(e)
+        sys.exit(1)
     np_arg = next((a.split("=", 1)[1] for a in args if a.startswith("--num-predict=")), None)
     try:
         num_pred = int(np_arg) if np_arg else 3000
@@ -44,7 +49,7 @@ def main():
     models = [a for a in args if not a.startswith("--")]
     if not models:
         print("Usage: python3 bench_reasoning.py [--runs N] [--think=on|false|low|high] "
-              "[--num-predict=N] [--out=FILE] MODEL [...]")
+              "[--num-predict=N] [--option=key=value] [--out=FILE] MODEL [...]")
         print("Generates answers only. Grade them with: python3 grade_reasoning.py <FILE>")
         sys.exit(1)
 
@@ -57,7 +62,7 @@ def main():
             answers = []
             for i, (q, correct) in enumerate(PUZZLES, 1):
                 try:
-                    r = generate(m, q, num_predict=num_pred, think=think)
+                    r = generate(m, q, num_predict=num_pred, options=options, think=think)
                     ans = r.get("response") or ""
                     trunc = r.get("done_reason") == "length"
                     err = None
@@ -70,7 +75,8 @@ def main():
                                 "answer": ans, "trunc": trunc, "gen_error": err})
             model_runs.append(answers)
             print(f"  run {run_i + 1}: collected {len(answers)} answers")
-        out[m] = {"prompts": prompts_file, "num_predict": num_pred, "think": think, "runs": model_runs}
+        out[m] = {"prompts": prompts_file, "num_predict": num_pred, "think": think,
+                  "options": options, "runs": model_runs}
 
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
