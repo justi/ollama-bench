@@ -1,5 +1,5 @@
 # north-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
-# Thinking model. Code profile top_p 0.8; reasoning wants top_p 0.95 (needs a separate Modelfile variant).
+# Thinking model. Code profile top_p 0.8; run_bench overrides reasoning calls to top_p 0.95.
 # ollama create north-best -f configs/north.best.Modelfile
 FROM north-mini-code-1.0
 PARAMETER temperature 0.7

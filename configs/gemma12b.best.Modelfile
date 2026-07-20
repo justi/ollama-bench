@@ -1,0 +1,8 @@
+# gemma12b-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# Gemma 4 12B dense (Google, rel. 2026-06, ~7.6 GB). Gemma 4 official family sampling temp 1.0 / top_k 64 / top_p 0.95 (same official as e4b - NOT copied guesswork, it is the family card value). Unlike E4B, the 12B is NOT the thinking-exception variant - think=false disables thinking normally. Purpose: size-thesis sibling to gemma-best (e4b) - dense 12B vs 8B/4.5B-eff on the same axes. VERIFY thinking behavior + baked params via `ollama show --parameters gemma4:12b` before the canonical run.
+# ollama create gemma12b-best -f configs/gemma12b.best.Modelfile
+FROM gemma4:12b
+PARAMETER temperature 1.0
+PARAMETER top_k 64
+PARAMETER top_p 0.95
+PARAMETER num_ctx 8192

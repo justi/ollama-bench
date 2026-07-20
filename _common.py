@@ -34,7 +34,7 @@ OLLAMA_OPTION_KEYS = {
     "use_mmap",
     "vocab_only",
 }
-RESERVED_OPTION_KEYS = {"num_predict", "think"}
+RESERVED_OPTION_KEYS = {"num_predict", "think", "bug_num_predict"}
 
 _PROMPTS = None
 

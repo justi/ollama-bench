@@ -1,5 +1,5 @@
 # gpt-oss-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
-# Thinking HARDCODED (harmony) - cannot disable, only level. Code profile temp 0.3; reasoning wants temp 1.0 (needs a separate Modelfile variant). NEVER temp 0 (100% loops). speed uses think=low (its floor).
+# Thinking HARDCODED (harmony) - cannot disable, only level. Code profile temp 0.3; run_bench overrides reasoning calls to temp 1.0. NEVER temp 0 (100% loops). speed uses think=low (its floor).
 # ollama create gpt-oss-best -f configs/gpt-oss.best.Modelfile
 FROM gpt-oss:20b
 PARAMETER temperature 0.3

@@ -32,15 +32,16 @@ ollama pull gpt-oss:20b
 ## Quick start
 
 ```bash
-# everything at once (writes results_*.json)
+# full suite via run_bench.py (edit MODELS + RUNS_CODE inside run.sh; RUNS_CODE=100 = published campaign)
 bash run.sh
 
-# or individually, with your own model list
+# or individually. NOTE: bench_reasoning/bench_coding now REQUIRE the token budgets that
+# run_bench.py otherwise supplies from models.json - pass them explicitly for direct calls.
 python3 bench_speed.py qwen3-coder:30b gpt-oss:20b
 python3 bench_speed.py --big qwen3-coder:30b
 python3 bench_numpredict.py gpt-oss:20b
-python3 bench_reasoning.py --runs 3 qwen3-coder:30b gpt-oss:20b
-python3 bench_coding.py --expert qwen3-coder:30b      # runs the generated code!
+python3 bench_reasoning.py --runs 3 --num-predict=10000 qwen3-coder:30b gpt-oss:20b
+python3 bench_coding.py --expert --num-predict=4000 --bug-num-predict=800 qwen3-coder:30b   # runs the generated code!
 python3 bench_cost.py "qwen3-coder:30b=61.2" "devstral:24b=9.8"   # energy kWh/1M
 ```
 
@@ -110,7 +111,7 @@ config sets `num_predict 3000` (and the per-task code budget is 4000).
 - `prompts_pl.json` / `prompts_en.json` - all test tasks in Polish (default) and English.
   Pick with `BENCH_PROMPTS=prompts_en.json` (see "Language effect" below)
 - `mutated_candidates*.json`, `verify_mutated*.py` - anti-memorization code tasks + their verification
-- `configs/` - 9 best Modelfiles (GENERATED from `models.json`)
+- `configs/` - 11 best Modelfiles (GENERATED from `models.json`)
 - `MODELS_CONFIG.md` - default vs best params per model + thinking control
 - `legacy/` - old Modelfiles from early experiments; kept for provenance, NOT used currently
 

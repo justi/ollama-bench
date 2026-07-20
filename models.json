@@ -1,5 +1,5 @@
 {
-  "_doc": "SINGLE SOURCE OF TRUTH for how each model is configured AND invoked per task. Scripts read this (via run_bench.py) so invocations are canonical - no ad-hoc flags, nothing forgotten. Per-task knobs include think, num_predict, and scalar Ollama option overrides such as temperature/top_p; params document the best sampling baked into configs/*.Modelfile. think values are exactly what --think= expects: false | true | low | high. 'thinking': controllable | none | forced (gpt-oss: cannot be disabled, only leveled). reasoning num_predict is high for thinking models (thinking eats budget; runaway-safe). speed always think=false (throughput convention, matches the energy table).",
+  "_doc": "SINGLE SOURCE OF TRUTH for how each model is configured AND invoked per task. Scripts read this (via run_bench.py) so invocations are canonical - no ad-hoc flags, nothing forgotten. Per-task knobs include think, num_predict, bug_num_predict (code task only: the bug-finding output budget, kept separate from the generation num_predict), and scalar Ollama option overrides such as temperature/top_p; params document the best sampling baked into configs/*.Modelfile. think values are exactly what --think= expects: false | true | low | high. 'thinking': controllable | none | forced (gpt-oss: cannot be disabled, only leveled). reasoning num_predict is high for thinking models (thinking eats budget; runaway-safe). speed always think=false (throughput convention, matches the energy table).",
   "models": {
     "qwen36-best": {
       "base": "qwen3.6:35b-a3b",
@@ -7,7 +7,7 @@
       "params": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0, "presence_penalty": 1.5, "repeat_penalty": 1.0, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "controllable",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "true",  "num_predict": 10000},
         "speed":     {"think": "false"}
       },
@@ -19,7 +19,7 @@
       "params": {"temperature": 0.7, "top_k": 20, "top_p": 0.8, "repeat_penalty": 1.05, "num_ctx": 8192},
       "thinking": "none",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "false", "num_predict": 3000},
         "speed":     {"think": "false"}
       },
@@ -31,7 +31,7 @@
       "params": {"temperature": 0.3, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "forced",
       "tasks": {
-        "code":      {"think": "low",  "num_predict": 4000},
+        "code":      {"think": "low",  "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "high", "num_predict": 6000, "temperature": 1.0},
         "speed":     {"think": "low"}
       },
@@ -43,7 +43,7 @@
       "params": {"temperature": 0.7, "top_p": 0.8, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "controllable",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "true",  "num_predict": 6000, "top_p": 0.95},
         "speed":     {"think": "false"}
       },
@@ -55,7 +55,7 @@
       "params": {"temperature": 0.7, "num_ctx": 8192},
       "thinking": "none",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "false", "num_predict": 3000},
         "speed":     {"think": "false"}
       },
@@ -67,7 +67,7 @@
       "params": {"temperature": 0.2, "top_p": 0.9, "num_ctx": 8192},
       "thinking": "none",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "false", "num_predict": 3000},
         "speed":     {"think": "false"}
       },
@@ -79,7 +79,7 @@
       "params": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0, "presence_penalty": 1.5, "repeat_penalty": 1.0, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "none",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "false", "num_predict": 3000},
         "speed":     {"think": "false"}
       },
@@ -91,7 +91,7 @@
       "params": {"temperature": 1.0, "top_k": 64, "top_p": 0.95, "num_ctx": 8192},
       "thinking": "controllable",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "true",  "num_predict": 10000},
         "speed":     {"think": "false"}
       },
@@ -103,11 +103,35 @@
       "params": {"temperature": 0.6, "num_ctx": 8192, "num_predict": 3000},
       "thinking": "controllable",
       "tasks": {
-        "code":      {"think": "false", "num_predict": 4000},
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
         "reasoning": {"think": "true",  "num_predict": 10000},
         "speed":     {"think": "false"}
       },
       "notes": "CRITICAL: num_ctx MUST be 8192 - the default 131072 = 54 GB = crash on 64 GB. Very slow (~4 tok/s). Dropped from the main fleet (slowest + no winning axis)."
+    },
+    "laguna-best": {
+      "base": "laguna-xs-2.1",
+      "modelfile": "configs/laguna.best.Modelfile",
+      "params": {"temperature": 1.0, "top_k": 20, "top_p": 1.0, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
+        "reasoning": {"think": "true",  "num_predict": 10000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "Poolside Laguna XS 2.1 (MoE 33B / 3B active, agentic coding, OpenMDW-1.1, rel. 2026-07-02). Official sampling temp 1.0 / top_k 20 / top_p 1.0 (HF card poolside/Laguna-XS-2.1). CRITICAL: default context 262144 (256K) - num_ctx FORCED to 8192 (crash-guard like deepseek-r1 + apples-to-apples with fleet). Q4_K_M ~20 GB: route to 32 GB card, verify `ollama ps`=100% GPU (no CPU-spill, which taints quality). Thinking controllable (enable_thinking); code=false per fleet convention (single-shot codegen) - NOTE Poolside recommends thinking-ON for MULTI-STEP agentic, so the think=false code score is a floor, not its agentic strength. VERIFY baked params via `ollama show --parameters laguna-xs-2.1` after pull."
+    },
+    "gemma12b-best": {
+      "base": "gemma4:12b",
+      "modelfile": "configs/gemma12b.best.Modelfile",
+      "params": {"temperature": 1.0, "top_k": 64, "top_p": 0.95, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
+        "reasoning": {"think": "true",  "num_predict": 10000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "Gemma 4 12B dense (Google, rel. 2026-06, ~7.6 GB). Gemma 4 official family sampling temp 1.0 / top_k 64 / top_p 0.95 (same official as e4b - NOT copied guesswork, it is the family card value). Unlike E4B, the 12B is NOT the thinking-exception variant - think=false disables thinking normally. Purpose: size-thesis sibling to gemma-best (e4b) - dense 12B vs 8B/4.5B-eff on the same axes. VERIFY thinking behavior + baked params via `ollama show --parameters gemma4:12b` before the canonical run."
     }
   }
 }

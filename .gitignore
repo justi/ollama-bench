@@ -1,4 +1,5 @@
 results_*.json
+results_*.log
 answers_*.json
 graded_*.json
 log_*.txt
@@ -9,3 +10,5 @@ _*.sh
 _*.log
 _*.txt
 articles/
+
+.claude/

@@ -122,8 +122,11 @@ def main():
                    f"--think={think}", f"--num-predict={np}", f"--out={out}"] + opts + [m]
             rc |= run(cmd) or 0
         else:  # code - bench_coding is single-pass, so loop it here (model stays warm between passes)
+            bug_np = cfg.get("bug_num_predict")
+            if bug_np is None:
+                print(f"[!] {m}: tasks.code.bug_num_predict missing in models.json", file=sys.stderr); rc = 1; continue
             base = [sys.executable, "bench_coding.py"] + set_flags + \
-                   [f"--think={think}", f"--num-predict={np}"] + opts + [m]
+                   [f"--think={think}", f"--num-predict={np}", f"--bug-num-predict={bug_np}"] + opts + [m]
             for r in range(int(runs)):
                 if int(runs) > 1:
                     print(f"   [pass {r + 1}/{runs}]")

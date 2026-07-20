@@ -1,0 +1,8 @@
+# laguna-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# Poolside Laguna XS 2.1 (MoE 33B / 3B active, agentic coding, OpenMDW-1.1, rel. 2026-07-02). Official sampling temp 1.0 / top_k 20 / top_p 1.0 (HF card poolside/Laguna-XS-2.1). CRITICAL: default context 262144 (256K) - num_ctx FORCED to 8192 (crash-guard like deepseek-r1 + apples-to-apples with fleet). Q4_K_M ~20 GB: route to 32 GB card, verify `ollama ps`=100% GPU (no CPU-spill, which taints quality). Thinking controllable (enable_thinking); code=false per fleet convention (single-shot codegen) - NOTE Poolside recommends thinking-ON for MULTI-STEP agentic, so the think=false code score is a floor, not its agentic strength. VERIFY baked params via `ollama show --parameters laguna-xs-2.1` after pull.
+# ollama create laguna-best -f configs/laguna.best.Modelfile
+FROM laguna-xs-2.1
+PARAMETER temperature 1.0
+PARAMETER top_k 20
+PARAMETER top_p 1.0
+PARAMETER num_ctx 8192
