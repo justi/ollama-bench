@@ -14,15 +14,21 @@ Generation speed on an **Apple M1 Max 64 GB running Ollama** - one consistent ru
 | Model | Gen tok/s | Thinking |
 |---|---:|:---:|
 | `qwen3-coder:30b` | **62.0** | off |
+| `north-mini-code-1.0` | 61.0 | off |
 | `ornith:35b` | 51.0 | off |
 | `qwen3.6:35b-a3b` | 50.8 | off |
+| `gemma4:e4b` | 47.1 | off |
 | `ornith:9b` | 34.8 | off |
+| `phi4:14b` | 19.7 | off |
+| `gpt-oss:20b` | 51.7 † | on |
 
-These are the MoE / distilled coders in their daily-driver regime (thinking off). Dense 14-24B
-models and thinking-on reasoners (phi4, devstral, gpt-oss) sit in a different, slower throughput
-regime - see the full campaign below. Absolute tok/s is hardware-specific (see [Disclaimer](#disclaimer));
-what reproduces across machines is the *relations* and orders of magnitude. Reproduce with
-`python3 bench_speed.py --think=false qwen3-coder:30b ornith:35b qwen3.6:35b-a3b ornith:9b`.
+The MoE / distilled coders run their daily-driver regime with thinking off; the dense `phi4:14b`
+is the slow outlier at 19.7. **†** `gpt-oss:20b` cannot disable thinking, so its 51.7 is the raw
+generation rate *including thinking tokens* - on a short prompt it spends that whole budget
+reasoning before answering (0 visible chars here), so it is not directly comparable to the
+thinking-off rows. Absolute tok/s is hardware-specific (see [Disclaimer](#disclaimer)); what
+reproduces across machines is the *relations* and orders of magnitude. Reproduce with
+`python3 bench_speed.py --think=false qwen3-coder:30b north-mini-code-1.0 ornith:35b qwen3.6:35b-a3b gemma4:e4b ornith:9b phi4:14b gpt-oss:20b`.
 
 ## Requirements
 
