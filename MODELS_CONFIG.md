@@ -76,7 +76,7 @@ at 1500 = 0 words of visible answer, measured). For `--think=false` (code) it's 
 
 Best ≈ default - qwen-coder is well configured out of the box. The only change is num_ctx
 (on 64 GB Ollama gives 256K = a large KV cache; 8192 is enough and frees up RAM). No thinking.
-Fast output (~61 tok/s, cold) and the most efficient overall; code 5/9 expert. north has the raw-fastest throughput (64.8 tok/s) but weaker code (4/9).
+Fast output (~62 tok/s in a consistent `--think=false` run, warm) and the most efficient overall; code 5/9 expert. In that same run north ties it on raw throughput (61.0 tok/s) but has weaker code (4/9).
 
 ## gpt-oss:20b - thinking HARDCODED (harmony), reasoning_effort
 
@@ -119,8 +119,9 @@ the earlier ~12 was a hot measurement). Strong non-thinking reasoner (5.0). No t
 
 NOTE: north is a thinking model. `configs/north.best.Modelfile` is the CODING profile (top_p 0.8). For
 CODE use `--think=false` - otherwise the code gets lost in thinking (on hard tasks). `run_bench.py`
-overrides reasoning calls to thinking ON and `top_p 0.95`. Fastest raw throughput (64.8 tok/s, cold),
-but weak on non-trivial code (4/9).
+overrides reasoning calls to thinking ON and `top_p 0.95`. Among the fastest on raw throughput
+(61.0 tok/s in a consistent `--think=false` run, on par with qwen-coder's 62.0), but weak on
+non-trivial code (4/9).
 
 ## phi4:14b - Microsoft, no thinking
 
