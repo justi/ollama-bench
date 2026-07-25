@@ -6,6 +6,24 @@ Reproducible benchmark of local LLMs on Ollama. Measure speed (tok/s), the effec
 Zero dependencies beyond the Python 3 standard library - it talks to Ollama over HTTP
 (`/api/generate`).
 
+## Results at a glance
+
+Generation speed on an **Apple M1 Max 64 GB running Ollama** - one consistent run of
+`bench_speed.py --think=false` (warmup + median of 3, each model measured in isolation):
+
+| Model | Gen tok/s | Thinking |
+|---|---:|:---:|
+| `qwen3-coder:30b` | **62.0** | off |
+| `ornith:35b` | 51.0 | off |
+| `qwen3.6:35b-a3b` | 50.8 | off |
+| `ornith:9b` | 34.8 | off |
+
+These are the MoE / distilled coders in their daily-driver regime (thinking off). Dense 14-24B
+models and thinking-on reasoners (phi4, devstral, gpt-oss) sit in a different, slower throughput
+regime - see the full campaign below. Absolute tok/s is hardware-specific (see [Disclaimer](#disclaimer));
+what reproduces across machines is the *relations* and orders of magnitude. Reproduce with
+`python3 bench_speed.py --think=false qwen3-coder:30b ornith:35b qwen3.6:35b-a3b ornith:9b`.
+
 ## Requirements
 
 - Python 3.9+
