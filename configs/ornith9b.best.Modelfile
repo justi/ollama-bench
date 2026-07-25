@@ -1,0 +1,8 @@
+# ornith9b-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# DeepReinforce Ornith 1.0 9B DENSE (post-trained on Qwen 3.5), agentic coding, MIT, rel. 2026-06-25. Sampling temp 0.6 / top_p 0.95 / top_k 20 (HF general rec). CODE measured think=false: MEASURED that think=true TRUNCATES single-shot code (4/9 tasks TR! even at num_predict=10000 - verbose thinking eats the budget, same pattern as qwen36). DeepReinforce's think-ON benchmarks are AGENTIC (SWE-Bench via OpenHands, multi-turn, 256K) - does NOT transfer to single-shot function-gen. num_ctx FORCED to 8192 (default 262144). Runs on macOS (Qwen3.5 arch).
+# ollama create ornith9b-best -f configs/ornith9b.best.Modelfile
+FROM ornith:9b
+PARAMETER temperature 0.6
+PARAMETER top_k 20
+PARAMETER top_p 0.95
+PARAMETER num_ctx 8192

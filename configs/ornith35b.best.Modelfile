@@ -1,0 +1,8 @@
+# ornith35b-best - GENERATED from models.json. Do NOT hand-edit; edit models.json + run gen_modelfiles.py.
+# DeepReinforce Ornith 1.0 35B MoE (post-trained on Qwen 3.5 - SAME base family as unsloth-q4xl-best/qwen36), agentic coding, MIT, rel. 2026-06-25, ~21 GB Q4. Sampling temp 0.6 / top_p 0.95 / top_k 20. CODE measured think=false: think=true TRUNCATES single-shot code (measured: 4/9 tasks TR! at num_predict=10000 - thinking too verbose, same as qwen36). DeepReinforce's think-ON SWE-Bench is AGENTIC/multi-turn - does NOT transfer to single-shot function-gen (this benchmark). Article angle: single-shot code think-off ~5-7/9 (n=3, matches Qwen3.5 base tier) - its self-scaffolding RL edge is agentic, not captured here (benchmark != reality). num_ctx FORCED to 8192 (default 262144).
+# ollama create ornith35b-best -f configs/ornith35b.best.Modelfile
+FROM ornith:35b
+PARAMETER temperature 0.6
+PARAMETER top_k 20
+PARAMETER top_p 0.95
+PARAMETER num_ctx 8192

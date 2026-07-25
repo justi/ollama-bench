@@ -132,6 +132,30 @@
         "speed":     {"think": "false"}
       },
       "notes": "Gemma 4 12B dense (Google, rel. 2026-06, ~7.6 GB). Gemma 4 official family sampling temp 1.0 / top_k 64 / top_p 0.95 (same official as e4b - NOT copied guesswork, it is the family card value). Unlike E4B, the 12B is NOT the thinking-exception variant - think=false disables thinking normally. Purpose: size-thesis sibling to gemma-best (e4b) - dense 12B vs 8B/4.5B-eff on the same axes. VERIFY thinking behavior + baked params via `ollama show --parameters gemma4:12b` before the canonical run."
+    },
+    "ornith9b-best": {
+      "base": "ornith:9b",
+      "modelfile": "configs/ornith9b.best.Modelfile",
+      "params": {"temperature": 0.6, "top_p": 0.95, "top_k": 20, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
+        "reasoning": {"think": "true",  "num_predict": 10000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "DeepReinforce Ornith 1.0 9B DENSE (post-trained on Qwen 3.5), agentic coding, MIT, rel. 2026-06-25. Sampling temp 0.6 / top_p 0.95 / top_k 20 (HF general rec). CODE measured think=false: MEASURED that think=true TRUNCATES single-shot code (4/9 tasks TR! even at num_predict=10000 - verbose thinking eats the budget, same pattern as qwen36). DeepReinforce's think-ON benchmarks are AGENTIC (SWE-Bench via OpenHands, multi-turn, 256K) - does NOT transfer to single-shot function-gen. num_ctx FORCED to 8192 (default 262144). Runs on macOS (Qwen3.5 arch)."
+    },
+    "ornith35b-best": {
+      "base": "ornith:35b",
+      "modelfile": "configs/ornith35b.best.Modelfile",
+      "params": {"temperature": 0.6, "top_p": 0.95, "top_k": 20, "num_ctx": 8192},
+      "thinking": "controllable",
+      "tasks": {
+        "code":      {"think": "false", "num_predict": 4000, "bug_num_predict": 800},
+        "reasoning": {"think": "true",  "num_predict": 10000},
+        "speed":     {"think": "false"}
+      },
+      "notes": "DeepReinforce Ornith 1.0 35B MoE (post-trained on Qwen 3.5 - SAME base family as unsloth-q4xl-best/qwen36), agentic coding, MIT, rel. 2026-06-25, ~21 GB Q4. Sampling temp 0.6 / top_p 0.95 / top_k 20. CODE measured think=false: think=true TRUNCATES single-shot code (measured: 4/9 tasks TR! at num_predict=10000 - thinking too verbose, same as qwen36). DeepReinforce's think-ON SWE-Bench is AGENTIC/multi-turn - does NOT transfer to single-shot function-gen (this benchmark). Article angle: single-shot code think-off ~5-7/9 (n=3, matches Qwen3.5 base tier) - its self-scaffolding RL edge is agentic, not captured here (benchmark != reality). num_ctx FORCED to 8192 (default 262144)."
     }
   }
 }
