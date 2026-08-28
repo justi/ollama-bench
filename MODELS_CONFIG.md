@@ -185,7 +185,7 @@ Also serves as the neutral cross-family judge for grade_reasoning.py.
 | thinking | ON | **`--think=false` for code** |
 
 Parameters from unsloth's recommendation (the key difference: top_p 0.8 not 0.95). With no-think it is
-the BEST coder for hard tasks (6/9 expert!). With thinking ON the code gets lost (4/8). For reasoning
+the BEST coder for hard tasks (6/9 expert!). With thinking ON the code gets lost (median 2/12 over 3 runs, results_thinkON_code_run*.json - gen tasks collapse; an earlier 8-task pass gave 4/8, artifact not retained). For reasoning
 leave thinking on.
 
 ## deepseek-r1:32b - DeepSeek-R1-Distill-Qwen (reasoning), THINKING
