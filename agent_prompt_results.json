@@ -1,0 +1,14 @@
+[
+  {
+    "total_s": 91.5,
+    "prompt_tok_s": 193.6,
+    "gen_tok_s": 22.3,
+    "model": "qwen-coder-best",
+    "prompt_tokens": 16080,
+    "runs_total_s": [
+      91.5,
+      97.6,
+      90.4
+    ]
+  }
+]
