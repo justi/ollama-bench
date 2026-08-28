@@ -1,0 +1,65 @@
+[
+  {
+    "label": "north OFF",
+    "model": "north-mini-code-1.0",
+    "think": false,
+    "n": 10,
+    "raw_med": 63.9,
+    "visible_med": 63.9,
+    "think_pct_med": 0,
+    "raw_runs": [
+      62.8,
+      63.7,
+      64.6,
+      63.8,
+      64.0,
+      64.1,
+      62.6,
+      64.8,
+      62.0,
+      64.1
+    ]
+  },
+  {
+    "label": "north ON",
+    "model": "north-mini-code-1.0",
+    "think": true,
+    "n": 10,
+    "raw_med": 40.8,
+    "visible_med": 4.3,
+    "think_pct_med": 90,
+    "raw_runs": [
+      54.1,
+      49.5,
+      46.0,
+      40.2,
+      43.4,
+      41.4,
+      39.1,
+      38.2,
+      38.3,
+      38.2
+    ]
+  },
+  {
+    "label": "gpt-oss",
+    "model": "gpt-oss:20b",
+    "think": false,
+    "n": 10,
+    "raw_med": 30.2,
+    "visible_med": 12.1,
+    "think_pct_med": 60,
+    "raw_runs": [
+      33.9,
+      31.4,
+      29.8,
+      30.1,
+      31.2,
+      30.1,
+      30.4,
+      30.3,
+      29.7,
+      30.1
+    ]
+  }
+]
